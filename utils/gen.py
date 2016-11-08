@@ -9,9 +9,7 @@ import random
 
 from .misc import dist_ring
 
-# TODO: fix
-def navigable_small_world_ring(n, p=1, q=1, r=1, seed=None):
-
+def kleinberg_ring(n, p=1, q=1, r=1, seed=None):
     if (p < 0):
         raise nx.NetworkXException("p must be >= 0")
     if (q < 0):
@@ -20,7 +18,7 @@ def navigable_small_world_ring(n, p=1, q=1, r=1, seed=None):
         raise nx.NetworkXException("r must be >= 1")
     if not seed is None:
         random.seed(seed)
-    G = nx.Graph()
+    G = nx.DiGraph()
     nodes = [x for x in range(0, n)]
     for p1 in nodes:
         probs = [0]
@@ -28,11 +26,17 @@ def navigable_small_world_ring(n, p=1, q=1, r=1, seed=None):
             if p1==p2:
                 continue
             d = dist_ring(p1, p2, len(nodes))
+    
             if d <= p:
                 G.add_edge(p1,p2)
+                #print("local contact %s to %s" % (p1, p2))
             probs.append(d**-r)
         cdf = list(nx.utils.accumulate(probs))
         for _ in range(q):
-            target = nodes[bisect_left(cdf,random.uniform(0, cdf[-1]))]
+            idx = bisect_left(cdf,random.uniform(0, cdf[-1]))
+            target = nodes[idx]
+            if idx >= p1:
+                target += 1            
             G.add_edge(p1,target)
+            #print("long-range contact %s to %s" % (p1, target))
     return G
