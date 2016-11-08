@@ -1,13 +1,14 @@
 from .misc import dist_ring
 
 def greedy_path(G, source, target, cutoff=None):
-    path = [source, ]
+    path = [source]
     curr = source
     step = 0
     while not curr == target:
         step += 1
-        print("current node is %s" % curr)
+        #print("current node is %s" % curr)
         if cutoff and step > cutoff:
+            print("number of hops reached a limit, terminating")
             break
         best = curr
         best_to_tgt = dist_ring(best, target, G.number_of_nodes())
