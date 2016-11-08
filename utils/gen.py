@@ -18,7 +18,7 @@ def kleinberg_ring(n, p=1, q=1, r=1, seed=None):
         raise nx.NetworkXException("r must be >= 1")
     if not seed is None:
         random.seed(seed)
-    G = nx.DiGraph()
+    G = nx.Graph()
     nodes = [x for x in range(0, n)]
     for p1 in nodes:
         probs = [0]
