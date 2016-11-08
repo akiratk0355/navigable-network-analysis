@@ -34,9 +34,9 @@ def kleinberg_ring(n, p=1, q=1, r=1, seed=None):
         cdf = list(nx.utils.accumulate(probs))
         for _ in range(q):
             idx = bisect_left(cdf,random.uniform(0, cdf[-1]))
+            if idx <= p1:
+                idx -= 1
             target = nodes[idx]
-            if idx >= p1:
-                target += 1            
             G.add_edge(p1,target)
             #print("long-range contact %s to %s" % (p1, target))
     return G
