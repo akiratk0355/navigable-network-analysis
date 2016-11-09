@@ -6,7 +6,6 @@ Created on Oct 27, 2016
 import random
 
 import networkx as nx
-import matplotlib.pyplot as plt
 
 class MiscException(Exception):
     pass
@@ -35,8 +34,8 @@ def shuffle_position_ring(G, iteration=None):
         G.node[nd]['original'] = nd
     
     for _ in range(0, iteration):     
-        n1 = int(random.uniform(0, G.number_of_nodes()))
-        n2 = int(random.uniform(0, G.number_of_nodes()))
+        n1 = int(random.uniform(0, size))
+        n2 = int(random.uniform(0, size))
         #print("switching %d and %d" % (n1, n2))
         G = nx.relabel_nodes(G, {n1:n2,n2:n1})
         
