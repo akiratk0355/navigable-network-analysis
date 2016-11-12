@@ -3,11 +3,14 @@ Created on Oct 27, 2016
 
 @author: akira
 '''
-import networkx as nx
 from bisect import bisect_left
-import random
+import random, logging
+
+import networkx as nx
 
 from .misc import dist_ring
+
+logger = logging.getLogger(__name__)
 
 def kleinberg_ring(n, p=1, q=1, r=1, seed=None):
     if (p < 0):
@@ -29,7 +32,7 @@ def kleinberg_ring(n, p=1, q=1, r=1, seed=None):
     
             if d <= p:
                 G.add_edge(p1,p2)
-                #print("local contact %s to %s" % (p1, p2))
+                logger.debug("local contact %s to %s", p1, p2)
             probs.append(d**-r)
         cdf = list(nx.utils.accumulate(probs))
         for _ in range(q):
@@ -38,5 +41,5 @@ def kleinberg_ring(n, p=1, q=1, r=1, seed=None):
                 idx -= 1
             target = nodes[idx]
             G.add_edge(p1,target)
-            #print("long-range contact %s to %s" % (p1, target))
+            logger.debug("long-range contact %s to %s", p1, target)
     return G
