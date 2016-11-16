@@ -75,6 +75,19 @@ def shuffle_position_ring(G, iteration=None):
     labels = labels_from_attr(G, POS_KEY)
     
     return (G, labels)
-        
+
+def color_path(G, path, color='b', color_def='k', width=4.0, width_def=0.5):
+    path_elist = [(path[i], path[i+1]) for i in range(0, len(path)-1)] # [(n0,n1), (n1,n2), ...]
+    clist = []
+    wlist = []
+    logger.info(path_elist)
+    for e in G.edges_iter():
+        if e in path_elist or (e[-1], e[0]) in path_elist:
+            clist.append(color)
+            wlist.append(width)
+        else:
+            clist.append(color_def)
+            wlist.append(width_def)
+    return (clist, wlist)
 
 
