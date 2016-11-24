@@ -109,6 +109,9 @@ if( window.location.search.match( /print-pdf/gi ) ) {
 }
 .reveal .slides {
   text-align: left;
+  top: 0;
+  margin-top: 0;
+  height: 100%;
 }
 .reveal.fade {
   opacity: 1;
@@ -133,6 +136,9 @@ div.prompt {
 div.output_area pre {
   font-family: monospace, sans-serif;
   font-size: 80%;
+  display: table-cell;
+  text-align: center;
+  vertical-align: middle;
 }
 div.output_prompt {
   /* 5px right shift to account for margin in parent container */
@@ -189,8 +195,12 @@ require(
             controls: true,
             progress: true,
             history: true,
-            width: '160%',
-            height: '180%',
+            width: '170%',
+            height: '210%',
+            slideNumber: true,
+            center: false,
+            margin: 0,
+            transition: 'none',
             theme: Reveal.getQueryHash().theme, // available themes are in /css/theme
             transition: Reveal.getQueryHash().transition || 'linear', // default/cube/page/concave/zoom/linear/none
 
