@@ -19,6 +19,18 @@ def dist_ring(source, target, size): # helper func
         raise MiscException
     
     return min(abs(source - target), size - abs(source - target))
+
+def dist_lattice(p1, p2, size, dim=1):
+    if type(p1) == int and dim == 1:
+        return(dist_ring(p1, p2, size))
+
+    if any([x >= size for x in p1]) or any([x >= size for x in p2]):
+        logger.debug("invalid args")
+        raise MiscException
+    if dim == 1:
+        return sum((min(abs(b-a), size-abs(b-a)) for a,b in zip(p1, p2)))
+    else:
+        return sum((abs(b-a) for a,b in zip(p1, p2))) 
     
 def localcon_ring(node, size):
     if node == 0:
@@ -27,6 +39,9 @@ def localcon_ring(node, size):
         return (size-2, 0)
     else:
         return (node-1, node+1)
+
+def localcon_lattice(node, size, dim=1):
+    pass
 
 def labels_from_attr(G, attr):        
     return dict((n,d.get(attr, '')) for n,d in G.nodes(data=True))

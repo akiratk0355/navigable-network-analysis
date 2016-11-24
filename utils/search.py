@@ -1,31 +1,37 @@
 import logging, random
+from math import sqrt
 
 from .misc import dist_ring, localcon_ring
+from utils.misc import dist_lattice
+
 
 logger = logging.getLogger(__name__)
 
 class RoutingError(Exception):
     pass
 
-def greedy_path(G, source, target, cutoff=None, use_local=False, strict=True):
+def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=True):
     path = [source]
     curr = source
     step = 0
     visited = {}
     size = G.number_of_nodes()
+    if dim == 2:
+        size = int(sqrt(G.number_of_nodes()))
+    
     while not curr == target:
         visited[curr] = True
-        curr_to_tgt = dist_ring(curr, target, size)
+        curr_to_tgt = dist_lattice(curr, target, size, dim=dim)
         logger.debug("current node is %d: d(%d, %d)=%d", curr, curr, target, curr_to_tgt)
         if cutoff and step >= cutoff:
             raise RoutingError("number of hops reached a limit %d, terminating" % cutoff) 
         best = None
-        best_to_tgt = size # dummy
+        best_to_tgt = size * dim# dummy
 
         for neigh in G.neighbors(curr):
             if visited.get(neigh, False):
                 continue
-            d = dist_ring(neigh, target, size)
+            d = dist_lattice(neigh, target, size, dim=dim)
             logger.debug("checking neighbor %d: d(%d, %d)=%d", neigh, neigh, target, d)
             if d <= best_to_tgt:
                 best = neigh
@@ -39,7 +45,7 @@ def greedy_path(G, source, target, cutoff=None, use_local=False, strict=True):
                     raise RoutingError("terminating at dead-end node %d: no unvisited neighbors" % curr)
                 else:
                     logger.debug("using the second best node %d", best)
-            elif use_local:
+            elif use_local: #TODO: support use_local for dim == 2
                 pre, suc = localcon_ring(curr, size)
                 if dist_ring(pre, target, size) < dist_ring(suc, target, size):
                     best = pre
@@ -58,15 +64,21 @@ def greedy_path(G, source, target, cutoff=None, use_local=False, strict=True):
     visited[target] = True
     return (path, visited, step)
 
-def average_greedy_path_length(G, iteration=10000, cutoff=None, use_local=False, strict=True):
+def average_greedy_path_length(G, iteration=10000, dim=1, cutoff=None, use_local=False, strict=True):
     lsum = 0
     success = 0
+    size = G.number_of_nodes()
+    if not dim == 1:
+        size = int(sqrt(size))
     for _ in range(0, iteration):
-        src = int(random.uniform(0,G.number_of_nodes()))
-        dst = int(random.uniform(0,G.number_of_nodes()))
+        src = int(random.uniform(0,size))
+        dst = int(random.uniform(0,size))
+        if not dim == 1:
+            src = (int(random.uniform(0,size)), int(random.uniform(0,size)))
+            dst = (int(random.uniform(0,size)), int(random.uniform(0,size)))
         #print("finding path from %s to %s" % (src, dst))
         try:
-            path, vstd, step = greedy_path(G, src, dst, cutoff=cutoff, use_local=use_local, strict=strict)
+            path, vstd, step = greedy_path(G, src, dst, dim=dim, cutoff=cutoff, use_local=use_local, strict=strict)
         except RoutingError:
             #print("failed")
             continue
