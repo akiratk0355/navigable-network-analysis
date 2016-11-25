@@ -11977,8 +11977,13 @@ a.anchor-link {
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="1.2-&#32972;&#26223;:-P2P&#12493;&#12483;&#12488;&#12527;&#12540;&#12463;">1.2 &#32972;&#26223;: P2P&#12493;&#12483;&#12488;&#12527;&#12540;&#12463;<a class="anchor-link" href="#1.2-&#32972;&#26223;:-P2P&#12493;&#12483;&#12488;&#12527;&#12540;&#12463;">&#182;</a></h2><ul>
-<li>クライアント-サーバー方式と比較した, P2Pネットワークのメリット<ul>
-<li>負荷分散</li>
+<li>中心的な管理者を持たない分散的なオーバーレイネットワーク<ul>
+<li>ネットワーク上の各ノードはクライアントとサーバー双方の役割を担う</li>
+<li>対義語: クライアント-サーバーモデル</li>
+</ul>
+</li>
+<li>クライアント-サーバーモデルと比較した, P2Pネットワークのメリット<ul>
+<li>負荷分散, スケーラビリティ</li>
 <li>匿名化</li>
 <li>耐障害性</li>
 </ul>
@@ -11994,7 +11999,7 @@ a.anchor-link {
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="1.3-&#32972;&#26223;:-F2F&#12493;&#12483;&#12488;&#12527;&#12540;&#12463;">1.3 &#32972;&#26223;: F2F&#12493;&#12483;&#12488;&#12527;&#12540;&#12463;<a class="anchor-link" href="#1.3-&#32972;&#26223;:-F2F&#12493;&#12483;&#12488;&#12527;&#12540;&#12463;">&#182;</a></h2><ul>
-<li>Friend-to-friend(F2F)network, Darknet - Clarke et al (2000, 2009)<ul>
+<li>Friend-to-friend(F2F), Darknet (Clarke et al, 2009)<ul>
 <li>P2Pネットワークの一形態</li>
 <li>ネットワーク上の各ノードは、信頼のおける特定ノードとのみ直接の通信を行う</li>
 <li>匿名性やプライバシーコントロールレベルの向上を目的とする</li>
@@ -12066,11 +12071,8 @@ a.anchor-link {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<ul>
-<li>補足<ul>
+<h3 id="2.2.1-(&#35036;&#36275;)">2.2.1 (&#35036;&#36275;)<a class="anchor-link" href="#2.2.1-(&#35036;&#36275;)">&#182;</a></h3><ul>
 <li>$Z = \displaystyle\sum_{v_i\in V, v_i\neq u}^{}d(u,v_i)^{-r}$</li>
-</ul>
-</li>
 </ul>
 
 </div>
@@ -12131,7 +12133,7 @@ a.anchor-link {
 </ol>
 </li>
 <li>Dijkstra法の計算量: $O(n^2)$</li>
-<li>Cons: CPUパワーが必要</li>
+<li>Cons: CPUパワーが必要, トポロジーが変わるたびに再計算が必要</li>
 </ul>
 </li>
 <li><em>Greedy</em><ul>
@@ -27172,11 +27174,11 @@ RU5ErkJggg==
 <li>信頼関係によるF2Fネットワークを構築した場合スモール・ワールド性を持つと仮定 (例: Web of Trust)</li>
 <li>Kleinberg(2000)では各ノードが自分の格子上での位置を知っていることが前提となっている<ul>
 <li>コンピュータのオーバーレイネットワークではこの前提が成り立たない</li>
-<li>各ノードに格子上の位置を知らせる必要がある</li>
+<li>各ノードに格子上の位置を割り当てる必要がある</li>
 </ul>
 </li>
 <li><strong>Kleinbergモデルの復元</strong><ul>
-<li>対象となるグラフの各ノードを1次元or2次元格子上の点に対応付ける (<em>embedding</em>)</li>
+<li>対象となるグラフの各ノードを1次元格子(リング)上の点に対応付ける (<em>embedding</em>)</li>
 <li>格子上に並べられたグラフがKleinbergのモデルから生起しやすくなるような<em>embedding</em> $\phi$を<strong>MCMC</strong>により求める</li>
 <li>得られた<em>embedding</em>によって各ノードの配置を決定後、分散ルーティングを実行</li>
 </ul>
@@ -27193,14 +27195,31 @@ RU5ErkJggg==
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">2.2 Application to the routing in F2F overlay networks (Sandberg, 2006)<a class="anchor-link" href="#2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">&#182;</a></h2><h3 id="2.2.1-(&#29992;&#35486;)">2.2.1 (&#29992;&#35486;)<a class="anchor-link" href="#2.2.1-(&#29992;&#35486;)">&#182;</a></h3><ul>
+<li><em>embedding</em>: 対象となるグラフのノードの格子グラフへの対応付け</li>
+<li><em>base graph</em>: <em>embedding</em>先の格子グラフ</li>
+<li><em>reverse engineering</em>: 位置情報を欠いたグラフからKleinbergモデルでの位置情報を復元する</li>
+<li><em>location swapping</em>: M-Hアルゴリズムでembeddingの対応付けをある2つのノードについて入れ替える操作</li>
+<li><em>dead-end</em>: 自分よりもターゲットに近い隣接ノードがいない状態</li>
+<li><em>local/long-range contact</em>: 格子距離が最も近い隣接ノードとそうでない隣接ノード</li>
+</ul>
+
+</div>
+</div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">2.2 Application to the routing in F2F overlay networks (Sandberg, 2006)<a class="anchor-link" href="#2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">&#182;</a></h2><h3 id="2.2.2-&#21839;&#38988;&#35373;&#23450;">2.2.2 &#21839;&#38988;&#35373;&#23450;<a class="anchor-link" href="#2.2.2-&#21839;&#38988;&#35373;&#23450;">&#182;</a></h3><ul>
 <li>「Kleinbergモデルで生成されたネットワークトポロジーが与えられ、かつ各ノードの格子上における座標情報がないとき、効率的な分散ルーティングが可能になるように座標情報を復元する」<ul>
-<li>→ 配置$\phi$のパラメータ推定問題としてみなす</li>
+<li>→ embedding $\phi$のパラメータ推定問題としてみなす</li>
 </ul>
 </li>
 <li>$H = (V, E)$: 解析対象となるネットワーク ($E=\{1, 2,\ldots, m\}$とする)</li>
-<li>$G$: $k$次元格子, base graph</li>
-<li>$\phi$:  $V \to G$, パラメータ, 格子における元ノードの配置に対応</li>
+<li>$G$: $k$次元格子, <em>base graph</em></li>
+<li>$\phi: V \to G$:  全単射, <em>embedding</em></li>
 <li>$\textrm{Pr}(\phi|E)$: エッジ集合$E$が観測された場合の$\phi$の事後分布<ul>
 <li>このとき尤度関数
 $$\textrm{Pr} (E|\phi) = \displaystyle\prod_{i=1}^{m}\cfrac{1}{d(\phi(u_i), \phi(v_i))^{k}Z}$$
@@ -27216,13 +27235,29 @@ $$
 $$
 </div>
 </div>
-</div></section><section>
+</div><aside class="notes">
+
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">2.2 Application to the routing in F2F overlay networks (Sandberg, 2006)<a class="anchor-link" href="#2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">&#182;</a></h2><h3 id="2.2.3-&#25163;&#27861;---Metropolis-Hastings-&#12450;&#12523;&#12468;&#12522;&#12474;&#12512;">2.2.3 &#25163;&#27861; - Metropolis-Hastings &#12450;&#12523;&#12468;&#12522;&#12474;&#12512;<a class="anchor-link" href="#2.2.3-&#25163;&#27861;---Metropolis-Hastings-&#12450;&#12523;&#12468;&#12522;&#12474;&#12512;">&#182;</a></h3><ul>
+<h3 id="2.2.2-(&#35036;&#36275;)">2.2.2 (&#35036;&#36275;)<a class="anchor-link" href="#2.2.2-(&#35036;&#36275;)">&#182;</a></h3><ul>
+<li>$u_i, v_i$: エッジ$i$を持つノード</li>
+<li>$Z$はリングやトーラスであれば, どのノードを始点としても同じ値になる</li>
+<li><strong>TODO</strong>: Kleinbergのモデルから本当にこの尤度関数となるのか</li>
+</ul>
+
+</div>
+</div>
+</div>
+</aside></section><section>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">2.2 Application to the routing in F2F overlay networks (Sandberg, 2006)<a class="anchor-link" href="#2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">&#182;</a></h2><h3 id="2.2.3-Metropolis-Hastings-&#12450;&#12523;&#12468;&#12522;&#12474;&#12512;">2.2.3 Metropolis-Hastings &#12450;&#12523;&#12468;&#12522;&#12474;&#12512;<a class="anchor-link" href="#2.2.3-Metropolis-Hastings-&#12450;&#12523;&#12468;&#12522;&#12474;&#12512;">&#182;</a></h3><ul>
 <li>Metropolis-Hastingsアルゴリズムにより事後分布$\textrm{Pr}(\phi|E) $からembedding $\phi$をサンプリング</li>
 <li>$\phi_1$を現在の値, $\phi_2$を次の値候補として以下のように導かれた採択確率$\beta(\phi_1, \phi_2)$を用いる</li>
 </ul>
@@ -27248,7 +27283,23 @@ $$<ul>
 
 </div>
 </div>
-</div></section><section>
+</div><aside class="notes">
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="2.2.3-(&#35036;&#36275;)">2.2.3 (&#35036;&#36275;)<a class="anchor-link" href="#2.2.3-(&#35036;&#36275;)">&#182;</a></h3><ul>
+<li>事前分布$\textrm{Pr}(\phi)$は一様分布とする</li>
+<li><strong>TODO</strong>: 提案分布はなぜこれで良いのか</li>
+<li><strong>TODO</strong>: 収束効率</li>
+</ul>
+
+</div>
+</div>
+</div>
+</aside></section><section>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
@@ -27256,32 +27307,76 @@ $$<ul>
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">2.2 Application to the routing in F2F overlay networks (Sandberg, 2006)<a class="anchor-link" href="#2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">&#182;</a></h2><h3 id="2.2.3-Metropolis-Hastings-&#12450;&#12523;&#12468;&#12522;&#12474;&#12512;">2.2.3 Metropolis-Hastings &#12450;&#12523;&#12468;&#12522;&#12474;&#12512;<a class="anchor-link" href="#2.2.3-Metropolis-Hastings-&#12450;&#12523;&#12468;&#12522;&#12474;&#12512;">&#182;</a></h3><p><figure>
     <center><img src="data/sandberg_switch.png", width=800></center>
-     <center><figcaption> <font size="4">Node switching</font></figcaption></center>
+     <center><figcaption> <font size="4">How the node switching works</font></figcaption></center>
 </figure></p>
 <div align="right"> <font size="2">Sandberg, Oskar. "Distributed routing in small-worlds - Darknet", http://www.sandbergs.org/oskar/sw_darknet.pdf, 2006</font></div>
 </div>
 </div>
-</div></section><section>
+</div><aside class="notes">
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="2.2.3-(&#35036;&#36275;)">2.2.3 (&#35036;&#36275;)<a class="anchor-link" href="#2.2.3-(&#35036;&#36275;)">&#182;</a></h3><ul>
+<li>それぞれ$\phi_1, \phi_2$とする</li>
+<li>赤, 青のノードを$x,y$とする</li>
+<li>図では$\phi_1$における$x$とエッジを持つ各ノードと$x$の距離を計算 ($y$についても同様), $\phi_2$についても同様の計算を行う</li>
+<li>それらの距離を掛けあわせたものの比を取ってやる</li>
+<li>この図では$\phi_2$より$\phi_1$のほうが, 距離を掛けあわせた値が大きくなるので採択確率は1となり, 必ず$\phi_2$に推移する</li>
+</ul>
+
+</div>
+</div>
+</div>
+</aside></section><section>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">2.2 Application to the routing in F2F overlay networks (Sandberg, 2006)<a class="anchor-link" href="#2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">&#182;</a></h2><h3 id="2.2.4-&#28145;&#12373;&#20778;&#20808;&#25506;&#32034;">2.2.4 &#28145;&#12373;&#20778;&#20808;&#25506;&#32034;<a class="anchor-link" href="#2.2.4-&#28145;&#12373;&#20778;&#20808;&#25506;&#32034;">&#182;</a></h3><ul>
-<li>Kleinbergのモデルでは必ずlocal-contactが存在すると仮定しているため, ターゲットまでの距離は狭義に単調減少する</li>
+<li>Kleinbergのモデルではlocal-contactが必ず存在すると仮定しているため, ターゲットまでの距離は狭義に単調減少する</li>
 <li>しかし実データでこの仮定は成り立たないため, 行き止まり(<em>dead-end</em>)になる可能性がある</li>
-<li>行き止まりに対応するためのルーティングアルゴリズムとして、ホップ数上限付の深さ優先探索を用いる<ol>
+<li><em>dead-end</em>に対応するためのルーティングアルゴリズムとして、ホップ数上限付の深さ優先探索を用いる<ol>
 <li>リクエストの内容が過去に受け取ったものと同一であればリクエストを拒否。さもなくば2へ。</li>
 <li>自分がターゲットである or ホップ数上限に達していれば終了。さもなくば3へ。</li>
 <li>隣接ノードのうちターゲットに一番近いノードへリクエストをフォワード (Greedyルーティング)</li>
-<li>リクエストが拒否された場合、拒否したノードを候補から外し3を繰り返す。</li>
+<li>リクエストが拒否された場合、拒否したノードを候補から外し3を繰り返す。全ての隣接ノードから拒否された場合ルーティング失敗。</li>
 </ol>
 </li>
 </ul>
 
 </div>
 </div>
-</div></section><section>
+</div><aside class="notes">
+
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h3 id="2.2.4-(&#35036;&#36275;)">2.2.4 (&#35036;&#36275;)<a class="anchor-link" href="#2.2.4-(&#35036;&#36275;)">&#182;</a></h3><ul>
+<li><em>dead-end</em>は厳密には2通りある<ol>
+<li>自分よりもターゲットに近くなるような隣接ノードがいない状態</li>
+<li>全ての隣接ノードがすでに<em>visited</em>な状態</li>
+</ol>
+</li>
+<li>c.f. Freenet 0.7の実装で使われるルーティングアルゴリズムは以下の通り(Evans, 2007)<ol>
+<li>リクエストの内容が過去に一度来たものかどうかチェック。もし同じリクエストであれば, リクエストを拒否。</li>
+<li>自分がターゲットのデータを持っている場合は成功。さもなくば3へ。</li>
+<li>もし現在の位置がリクエストがそれまでに辿ってきたどのノードよりもターゲットに近ければ$HTL$(hops-to-live)をリセット</li>
+<li>もしHTLが0になればリクエスト失敗。さもなくば5へ。</li>
+<li>すでに通ったノードを除いた自分の隣接ノードからターゲットに一番近いものにリクエストをフォワードし, リクエストにHTL-1と自分のノードIDを付加</li>
+</ol>
+</li>
+</ul>
+
+</div>
+</div>
+</div>
+</aside></section><section>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
 </div>
@@ -27294,7 +27389,7 @@ $$<ul>
 <h4 id="3&#12497;&#12479;&#12540;&#12531;&#12398;&#12523;&#12540;&#12486;&#12451;&#12531;&#12464;&#12450;&#12523;&#12468;&#12522;&#12474;&#12512;">3&#12497;&#12479;&#12540;&#12531;&#12398;&#12523;&#12540;&#12486;&#12451;&#12531;&#12464;&#12450;&#12523;&#12468;&#12522;&#12474;&#12512;<a class="anchor-link" href="#3&#12497;&#12479;&#12540;&#12531;&#12398;&#12523;&#12540;&#12486;&#12451;&#12531;&#12464;&#12450;&#12523;&#12468;&#12522;&#12474;&#12512;">&#182;</a></h4><ul>
 <li>Fail(F): dead-endに到達した時点でルーティング失敗とする</li>
 <li>Local Contact(LC): base graph上のlocal contactの使用を許す(Kleinbergの論文の手法と同様)</li>
-<li>Continue(C): 深さ優先探索。dead-endに到達したら隣接ノード中で最も近いノードを次のノードとして選択。</li>
+<li>Continue(C): 深さ優先探索。dead-endに到達したら隣接ノード中で最も近いノードを次のノードとして選択。ホップ数上限を$(\log_2 n)^2$とする。</li>
 </ul>
 
 </div>
@@ -27418,7 +27513,7 @@ $$<ul>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[96]:</div>
+<div class="prompt input_prompt">In&nbsp;[99]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">HTML</span>
@@ -27428,12 +27523,10 @@ $$<ul>
 &lt;figure class=&quot;subfig&quot;&gt;
     &lt;img src=&quot;data/sandberg_2006_fig2.png&quot;&gt;
 &lt;/figure&gt;
-
-
 &lt;div align=&quot;right&quot;&gt; &lt;font size=&quot;2&quot;&gt;Sandberg, Oskar. &quot;Distributed routing in small-world networks.&quot; *Proceedings of the Meeting on Algorithm Engineering &amp; Expermiments*. Society for Industrial and Applied Mathematics, 2006.&lt;/font&gt;&lt;/div&gt;
 &lt;style&gt;
 .subfig {
-    width: 35%;
+    width: 50%;
     float: left;
     margin: 0;
     text-align: left;
@@ -27459,12 +27552,10 @@ $$<ul>
 <figure class="subfig">
     <img src="data/sandberg_2006_fig2.png">
 </figure>
-
-
 <div align="right"> <font size="2">Sandberg, Oskar. "Distributed routing in small-world networks." *Proceedings of the Meeting on Algorithm Engineering & Expermiments*. Society for Industrial and Applied Mathematics, 2006.</font></div>
 <style>
 .subfig {
-    width: 35%;
+    width: 50%;
     float: left;
     margin: 0;
     text-align: left;
@@ -27495,7 +27586,7 @@ $$<ul>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[154]:</div>
+<div class="prompt input_prompt">In&nbsp;[100]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">HTML</span>
@@ -27504,7 +27595,8 @@ $$<ul>
 &lt;/figure&gt;
 &lt;figure class=&quot;subfig&quot;&gt;
     &lt;img src=&quot;data/sandberg_2006_fig4.png&quot;&gt;
-&lt;/figure&gt; 
+&lt;/figure&gt;
+&lt;div align=&quot;right&quot;&gt; &lt;font size=&quot;2&quot;&gt;Sandberg, Oskar. &quot;Distributed routing in small-world networks.&quot; *Proceedings of the Meeting on Algorithm Engineering &amp; Expermiments*. Society for Industrial and Applied Mathematics, 2006.&lt;/font&gt;&lt;/div&gt;
 </pre></div>
 
 </div>
@@ -27523,7 +27615,8 @@ $$<ul>
 </figure>
 <figure class="subfig">
     <img src="data/sandberg_2006_fig4.png">
-</figure> 
+</figure>
+<div align="right"> <font size="2">Sandberg, Oskar. "Distributed routing in small-world networks." *Proceedings of the Meeting on Algorithm Engineering & Expermiments*. Society for Industrial and Applied Mathematics, 2006.</font></div>
 </div>
 
 </div>
@@ -27538,11 +27631,13 @@ $$<ul>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h2 id="2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">2.2 Application to the routing in F2F overlay networks (Sandberg, 2006)<a class="anchor-link" href="#2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">&#182;</a></h2><h3 id="2.2.5-&#12471;&#12511;&#12517;&#12524;&#12540;&#12471;&#12519;&#12531;---1.-&#20154;&#24037;&#30340;&#12395;&#29983;&#25104;&#12375;&#12383;&#12487;&#12540;&#12479;">2.2.5 &#12471;&#12511;&#12517;&#12524;&#12540;&#12471;&#12519;&#12531; - 1. &#20154;&#24037;&#30340;&#12395;&#29983;&#25104;&#12375;&#12383;&#12487;&#12540;&#12479;<a class="anchor-link" href="#2.2.5-&#12471;&#12511;&#12517;&#12524;&#12540;&#12471;&#12519;&#12531;---1.-&#20154;&#24037;&#30340;&#12395;&#29983;&#25104;&#12375;&#12383;&#12487;&#12540;&#12479;">&#182;</a></h3><ul>
-<li><em>start</em>: Kleinbergのモデルに従って生成された直後のグラフ</li>
-<li><em>random</em>: <em>start</em>の配置をランダムに入れ替えたグラフ</li>
-<li><em>restored</em>: <em>random</em>にM-Hアルゴリズムを適用し, $6000n$回反復を行った後のグラフ</li>
+<li>2次元格子に<em>embedding</em>した場合との比較</li>
+<li>(<em>restored</em>において各エッジが含むノード間の距離の合計)/(<em>start</em>において各エッジが含むノード間の距離の合計)</li>
 </ul>
-
+<p><figure>
+    <center><img src="data/sandberg_2006_fig12.png" width=600></center>
+</figure></p>
+<div align="right"> <font size="2">Sandberg, Oskar. "Distributed routing in small-world networks." *Proceedings of the Meeting on Algorithm Engineering & Expermiments*. Society for Industrial and Applied Mathematics, 2006.</font></div>
 </div>
 </div>
 </div></section><section>
@@ -27557,84 +27652,26 @@ $$<ul>
 <li>エッジ: ノード間でデジタル署名が行われていれば存在(有向)</li>
 </ul>
 </li>
-<li>本論文では2000ノードと4000ノードをサンプルとして抽出しテストを行った</li>
+<li>本論文ではリーフノードなど極端に次数の少ないノードを除いた2000ノードと4000ノードをサンプルとして抽出しテストを行っている</li>
 </ul>
-
+<p><figure>
+    <center><img src="data/wot2.gif" width=600></center>
+</figure></p>
+<div align="right"> <font size="2">Howlett, Tony. Open source security tools. Prentice Hall, 2004. </font></div>
 </div>
 </div>
+</div></section><section>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
 </div>
-<div class="cell border-box-sizing code_cell rendered">
-<div class="input">
-<div class="prompt input_prompt">In&nbsp;[153]:</div>
 <div class="inner_cell">
-    <div class="input_area">
-<div class=" highlight hl-ipython3"><pre><span></span><span class="o">%%</span><span class="k">HTML</span>
-&lt;figure class=&quot;table&quot;&gt;
-    &lt;img src=&quot;data/sandberg_2006_table1.png&quot;&gt;
-&lt;/figure&gt; 
-&lt;figure class=&quot;wot&quot;&gt;
-    &lt;img src=&quot;data/wot.gif&quot;&gt;
-&lt;/figure&gt;
-
-&lt;style&gt;
-.wot {
-    width: 45%;
-    float: left;
-    margin: 0;
-    text-align: left;
-    padding: 0;
-}
-.table {
-    width: 30%;
-    float: left;
-    margin: 0;
-    text-align: left;
-    padding: 0;
-}
-&lt;/style&gt;
-</pre></div>
-
+<div class="text_cell_render border-box-sizing rendered_html">
+<h2 id="2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">2.2 Application to the routing in F2F overlay networks (Sandberg, 2006)<a class="anchor-link" href="#2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">&#182;</a></h2><h3 id="2.2.5-&#12471;&#12511;&#12517;&#12524;&#12540;&#12471;&#12519;&#12531;---2.-&#23455;&#12487;&#12540;&#12479;-(PGP&#20844;&#38283;&#37749;&#12493;&#12483;&#12488;&#12527;&#12540;&#12463;:-Web-of-Trust)">2.2.5 &#12471;&#12511;&#12517;&#12524;&#12540;&#12471;&#12519;&#12531; - 2. &#23455;&#12487;&#12540;&#12479; (PGP&#20844;&#38283;&#37749;&#12493;&#12483;&#12488;&#12527;&#12540;&#12463;: Web of Trust)<a class="anchor-link" href="#2.2.5-&#12471;&#12511;&#12517;&#12524;&#12540;&#12471;&#12519;&#12531;---2.-&#23455;&#12487;&#12540;&#12479;-(PGP&#20844;&#38283;&#37749;&#12493;&#12483;&#12488;&#12527;&#12540;&#12463;:-Web-of-Trust)">&#182;</a></h3><p><figure class="subtabletwo">
+    <center><img src="data/sandberg_2006_table.png"></center>
+</figure></p>
+<div align="right"> <font size="2">Sandberg, Oskar. "Distributed routing in small-world networks." Proceedings of the Meeting on Algorithm Engineering & Expermiments. Society for Industrial and Applied Mathematics, 2006.</font></div>
 </div>
 </div>
-</div>
-
-<div class="output_wrapper">
-<div class="output">
-
-
-<div class="output_area"><div class="prompt"></div>
-
-<div class="output_html rendered_html output_subarea ">
-<figure class="table">
-    <img src="data/sandberg_2006_table1.png">
-</figure> 
-<figure class="wot">
-    <img src="data/wot.gif">
-</figure>
-
-<style>
-.wot {
-    width: 45%;
-    float: left;
-    margin: 0;
-    text-align: left;
-    padding: 0;
-}
-.table {
-    width: 30%;
-    float: left;
-    margin: 0;
-    text-align: left;
-    padding: 0;
-}
-</style>
-</div>
-
-</div>
-
-</div>
-</div>
-
 </div></section><section>
 <div class="cell border-box-sizing text_cell rendered">
 <div class="prompt input_prompt">
@@ -27644,7 +27681,7 @@ $$<ul>
 <h2 id="2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">2.2 Application to the routing in F2F overlay networks (Sandberg, 2006)<a class="anchor-link" href="#2.2-Application-to-the-routing-in-F2F-overlay-networks-(Sandberg,-2006)">&#182;</a></h2><h3 id="2.2.6-&#32080;&#35542;">2.2.6 &#32080;&#35542;<a class="anchor-link" href="#2.2.6-&#32080;&#35542;">&#182;</a></h3><ul>
 <li>提案されたM-Hアルゴリズムによってノードの位置交換を繰り返すことで, 効率の良い分散ルーティングが可能になる</li>
 <li>人工的に生成されたデータに対しては, M-Hアルゴリズム適用の結果, 理想的な配置におけるホップ数に近づけることができる</li>
-<li>実データに関しては多数のリーフノードの存在により, dead-endに到達することが多く, Greedyアルゴリズムでは非効率となってしまう<ul>
+<li>実データに関してはdead-endに到達することが多く, Greedyアルゴリズムでは非効率となってしまう<ul>
 <li>ただし実データを対象にした他の先行研究の結果は成功率が更に低い<ul>
 <li>Liben-Nowell et al. (2005): 13%</li>
 <li>Milgram (1967): 20%</li>
@@ -27663,8 +27700,9 @@ $$<ul>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="3.-&#20170;&#24460;&#12398;&#35506;&#38988;&#12392;&#25913;&#33391;&#26696;">3. &#20170;&#24460;&#12398;&#35506;&#38988;&#12392;&#25913;&#33391;&#26696;<a class="anchor-link" href="#3.-&#20170;&#24460;&#12398;&#35506;&#38988;&#12392;&#25913;&#33391;&#26696;">&#182;</a></h1><ul>
-<li>Kleinberg(2000)のモデルはlocal contactが必ず存在するという仮定の上ルーティングが機能するとしているが、現実的ではない。またスケールフリー性も無視している。<ul>
-<li>より現実的なモデルをembedding先として用いる (例: Kleinberg(2002), Watts et al. (2002))</li>
+<li>Kleinberg(2000)のモデルはlocal contactが必ず存在するという仮定の上ルーティングが機能するとしているが, 現実的ではない。またスケールフリー性も無視している。<ul>
+<li>より現実に則したモデル(スモール・ワールドかつスケールフリーかつ分散ルーティング可能なモデル)に<em>embedding</em>する必要性</li>
+<li>例: Kleinberg(2002), Watts et al. (2002)</li>
 </ul>
 </li>
 <li>M-Hアルゴリズムにおいて, 位置を入れ替えるノードの選択が分散的でない<ul>
@@ -27672,17 +27710,8 @@ $$<ul>
 </ul>
 </li>
 <li>Web of Trust以外の社会ネットワークデータに対する実験</li>
-<li>現実のネットワークは通信速度等を考慮して重み付きエッジを用いるべき</li>
+<li>現実のネットワークは帯域等を考慮して重み付きエッジを用いるべき</li>
 </ul>
-
-</div>
-</div>
-</div>
-<div class="cell border-box-sizing text_cell rendered">
-<div class="prompt input_prompt">
-</div>
-<div class="inner_cell">
-<div class="text_cell_render border-box-sizing rendered_html">
 
 </div>
 </div>
