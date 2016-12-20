@@ -1,4 +1,5 @@
 data/cite
+data/thesis-slides-interim.odp
 .ipynb_checkpoints/
 __pycache__/
 *.aux
