@@ -8,7 +8,6 @@ import random, logging
 import networkx as nx
 
 logger = logging.getLogger(__name__)
-POS_KEY = 'original'
 
 class MiscException(Exception):
     pass
@@ -52,6 +51,8 @@ def switch_nodes(G, x, y):
     # store x-edges
     ebunch = []
     for neigh in G.neighbors_iter(x):
+        if neigh == y:
+            continue
         e = (size, neigh)
         G.add_edge(*e)
         ebunch.append((x, neigh))
@@ -60,6 +61,8 @@ def switch_nodes(G, x, y):
     # rewire x-edges
     ebunch = []
     for neigh in G.neighbors_iter(y):
+        if neigh == x:
+            continue
         G.add_edge(*(x,neigh))
         ebunch.append((y, neigh))
     G.remove_edges_from(ebunch)
@@ -68,17 +71,12 @@ def switch_nodes(G, x, y):
     for neigh in G.neighbors_iter(size):
         G.add_edge(*(y,neigh))
     G.remove_node(size)
-    
-    G.node[x][POS_KEY], G.node[y][POS_KEY] = G.node[y].get(POS_KEY, ''), G.node[x].get(POS_KEY, '') 
 
 def shuffle_position_ring(G, iteration=None):
     G = G.copy()
     size = G.number_of_nodes()
     if not iteration:
         iteration = size
-    # store original position
-    for nd in G.nodes():
-        G.node[nd][POS_KEY] = nd
     
     for _ in range(0, iteration):     
         n1 = int(random.uniform(0, size))
@@ -86,10 +84,8 @@ def shuffle_position_ring(G, iteration=None):
         logger.debug("switching %d and %d", n1, n2)
         switch_nodes(G, n1, n2)
         #G = nx.relabel_nodes(G, {n1:n2, n2:n1})
-        
-    labels = labels_from_attr(G, POS_KEY)
     
-    return (G, labels)
+    return G
 
 def color_path(G, path, color='b', color_def='k', width=4.0, width_def=0.5):
     path_elist = [(path[i], path[i+1]) for i in range(0, len(path)-1)] # [(n0,n1), (n1,n2), ...]
