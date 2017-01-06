@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class RoutingError(Exception):
     pass
 
-def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=True):
+def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=True, use_deg=False):
     path = [source]
     curr = source
     step = 0
@@ -27,15 +27,22 @@ def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=T
             raise RoutingError("number of hops reached a limit %d, terminating" % cutoff) 
         best = None
         best_to_tgt = size * dim# dummy
+        best_to_tgt_withdeg = best_to_tgt
 
         for neigh in G.neighbors(curr):
             if visited.get(neigh, False):
                 continue
             d = dist_lattice(neigh, target, size, dim=dim)
             logger.debug("checking neighbor %d: d(%d, %d)=%d", neigh, neigh, target, d)
-            if d <= best_to_tgt:
-                best = neigh
-                best_to_tgt = d
+            if not use_deg:
+                if d <= best_to_tgt:
+                    best = neigh
+                    best_to_tgt = d
+            else:
+                if d/G.degree(neigh) <= best_to_tgt_withdeg:
+                    best = neigh
+                    best_to_tgt = d
+                    best_to_tgt_withdeg = d / G.degree(neigh)
         
         if curr_to_tgt <= best_to_tgt:
             logger.debug("encountered dead-end at %d !", curr)
@@ -64,7 +71,7 @@ def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=T
     visited[target] = True
     return (path, visited, step)
 
-def average_greedy_path_length(G, iteration=10000, dim=1, cutoff=None, use_local=False, strict=True):
+def average_greedy_path_length(G, iteration=10000, dim=1, cutoff=None, use_local=False, strict=True, use_deg=False):
     lsum = 0
     success = 0
     size = G.number_of_nodes()
@@ -78,7 +85,7 @@ def average_greedy_path_length(G, iteration=10000, dim=1, cutoff=None, use_local
             dst = (int(random.uniform(0,size)), int(random.uniform(0,size)))
         #print("finding path from %s to %s" % (src, dst))
         try:
-            path, vstd, step = greedy_path(G, src, dst, dim=dim, cutoff=cutoff, use_local=use_local, strict=strict)
+            path, vstd, step = greedy_path(G, src, dst, dim=dim, cutoff=cutoff, use_local=use_local, strict=strict, use_deg=use_deg)
         except RoutingError:
             #print("failed")
             continue
