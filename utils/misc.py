@@ -101,4 +101,14 @@ def color_path(G, path, color='b', color_def='k', width=4.0, width_def=0.5):
             wlist.append(width_def)
     return (clist, wlist)
 
+def frac_local_contact(G):
+    size = G.number_of_nodes()
+    num = 0
+    for i in range(0,size):
+        if i == size - 1 and G.has_edge(i,0):
+            num += 1
+        if G.has_edge(i, i+1):
+            num += 1
+    return num/size
+
 
