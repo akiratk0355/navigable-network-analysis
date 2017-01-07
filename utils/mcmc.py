@@ -4,7 +4,7 @@ Created on Jan 7, 2017
 @author: akira
 '''
 
-import random, logging
+import logging
 
 import networkx as nx
 import numpy as np
@@ -50,6 +50,8 @@ def mh_swap(G, mcs, precision=1000, random_walk=False):
             percent += 100 / precision
         x = np.random.randint(0,n)
         y = np.random.randint(0,n)
+        while x == y:
+            y = np.random.randint(0,n)
         if random_walk:
             pass
         #print("trying x-y switch: (%s,%s)" % (x,y))
