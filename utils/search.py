@@ -44,7 +44,7 @@ def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=T
                     best_to_tgt = d
                     best_to_tgt_withdeg = d / G.degree(neigh)
         
-        if curr_to_tgt <= best_to_tgt:
+        if curr_to_tgt < best_to_tgt:
             logger.debug("encountered dead-end at %d !", curr)
             if not strict:
                 if best == None: # no unvisited neighbors
