@@ -4,12 +4,10 @@ Created on Jan 6, 2017
 @author: akira
 '''
 
-import random, os, sys, argparse, logging, logging.handlers
+import os, sys, argparse, logging, logging.handlers
 
 import networkx as nx
-import numpy as np
 
-from utils.misc import dist_ring, switch_nodes
 from utils.mcmc import mh_swap
 
 def logging_setup(args):
