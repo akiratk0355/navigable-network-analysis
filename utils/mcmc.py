@@ -7,6 +7,7 @@ Created on Jan 7, 2017
 import random, logging
 
 import networkx as nx
+import numpy as np
 
 from utils.misc import dist_ring, switch_nodes
 
@@ -38,7 +39,7 @@ def distance_prod(G, x, y, size, switched=False):
     
     return prod
 
-def mh_swap(G, mcs, precision=1000):
+def mh_swap(G, mcs, precision=1000, random_walk=False):
     percent = 0
     n = G.number_of_nodes()
     G = G.copy()
@@ -47,12 +48,14 @@ def mh_swap(G, mcs, precision=1000):
         if i % div == 0:
             logger.info("{}% done: reached {}".format(percent, i))
             percent += 100 / precision
-        x = int(random.uniform(0,n))
-        y = int(random.uniform(0,n))
+        x = np.random.randint(0,n)
+        y = np.random.randint(0,n)
+        if random_walk:
+            pass
         #print("trying x-y switch: (%s,%s)" % (x,y))
         acceptance = min(1.0, distance_prod(G,x,y,n)/distance_prod(G,x,y,n,switched=True))
         #print("acceptance=%s" % acceptance)
-        if random.uniform(0,1) < acceptance:
+        if np.random.rand() < acceptance:
             #print("switching %d and %d" % (x,y))
             switch_nodes(G, x, y)
         else:
