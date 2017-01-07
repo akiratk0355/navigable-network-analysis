@@ -71,26 +71,23 @@ def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=T
     visited[target] = True
     return (path, visited, step)
 
-def average_greedy_path_length(G, iteration=10000, dim=1, cutoff=None, use_local=False, strict=True, use_deg=False):
+def average_greedy_path_length(G, trial_per_src=5, cutoff=None, use_local=False, strict=True, use_deg=False):
     lsum = 0
     success = 0
     size = G.number_of_nodes()
-    if not dim == 1:
-        size = int(sqrt(size))
-    for _ in range(0, iteration):
-        src = int(random.uniform(0,size))
-        dst = int(random.uniform(0,size))
-        if not dim == 1:
-            src = (int(random.uniform(0,size)), int(random.uniform(0,size)))
-            dst = (int(random.uniform(0,size)), int(random.uniform(0,size)))
-        #print("finding path from %s to %s" % (src, dst))
-        try:
-            path, vstd, step = greedy_path(G, src, dst, dim=dim, cutoff=cutoff, use_local=use_local, strict=strict, use_deg=use_deg)
-        except RoutingError:
-            #print("failed")
-            continue
-        else:
-            lsum += step
-            success += 1
-    
-    return (lsum/success, success/iteration)
+    for src in range(0, size):
+        for _ in range(0, trial_per_src):
+            dst = int(random.uniform(0,size))
+            while dst == src: # we luckily chose the same id, try again 
+                dst = int(random.uniform(0,size))
+            
+            #print("finding path from %s to %s" % (src, dst))
+            try:
+                path, vstd, step = greedy_path(G, src, dst, cutoff=cutoff, use_local=use_local, strict=strict, use_deg=use_deg)
+            except RoutingError:
+                #print("failed")
+                continue
+            else:
+                lsum += step
+                success += 1
+    return (lsum/success, success/(size*trial_per_src))
