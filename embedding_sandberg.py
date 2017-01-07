@@ -42,6 +42,8 @@ def main(argv):
                         help="Mode number")
     parser.add_argument("-i", "--iterations", action="store", type=float, metavar="ITERNUM", default=6000, dest="iters",
                         help="Number of iterations per node (default to 6000)")
+    parser.add_argument("-u", "--uniform", action="store_true", default=False,
+                        help="Uniformly choose node ID")
     args = parser.parse_args(argv)
     
     # Logging setup
@@ -74,7 +76,10 @@ def main(argv):
     n = G.number_of_nodes()
     mcs = int(args.iters*n)
     logger.info("running %d mcs...", mcs)
-    G = mh_swap(G, mcs)
+    if not args.uniform:
+        G = mh_swap(G, mcs)
+    else:
+        G = mh_swap(G, mcs, random_walk=False)
     
     logger.info("writing result to %s", outfile)
     nx.write_graphml(G, outfile)
