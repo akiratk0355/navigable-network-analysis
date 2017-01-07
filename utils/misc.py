@@ -46,14 +46,14 @@ def labels_from_attr(G, attr):
     return dict((n,d.get(attr, '')) for n,d in G.nodes(data=True))
 
 def switch_nodes(G, x, y):
-    size = G.number_of_nodes()
-    G.add_node(size) # temp
+    temp = 0.01
+    G.add_node(temp) # temp
     # store x-edges
     ebunch = []
     for neigh in G.neighbors_iter(x):
         if neigh == y:
             continue
-        e = (size, neigh)
+        e = (temp, neigh)
         G.add_edge(*e)
         ebunch.append((x, neigh))
     G.remove_edges_from(ebunch)
@@ -68,9 +68,9 @@ def switch_nodes(G, x, y):
     G.remove_edges_from(ebunch)
     
     # rewire y-edges
-    for neigh in G.neighbors_iter(size):
+    for neigh in G.neighbors_iter(temp):
         G.add_edge(*(y,neigh))
-    G.remove_node(size)
+    G.remove_node(temp)
 
 def shuffle_position_ring(G, iteration=None):
     G = G.copy()
