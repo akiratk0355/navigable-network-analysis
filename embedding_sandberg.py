@@ -26,15 +26,18 @@ def logging_setup(args):
     log_handler.setFormatter(log_format)
     log_root.addHandler(log_handler)
 
-def distance_prod(G, x, y, switched=False):
-    size = G.number_of_nodes()
+def distance_prod(G, x, y, size, switched=False):
     prod = 1.0
     #print("neighbors=%s" % G.neighbors(x))
     #print("neighbors=%s" % G.neighbors(y))
     if not switched:
         for ngh in G.neighbors(x):
+            if ngh == y:
+                continue
             prod *= dist_ring(x,ngh,size)
         for ngh in G.neighbors(y):
+            if ngh == x:
+                continue
             prod *= dist_ring(y,ngh,size)
     else:
         for ngh in G.neighbors(x):
@@ -111,16 +114,11 @@ def main(argv):
             x = int(random.uniform(0,n))
             y = int(random.uniform(0,n))
             #print("trying x-y switch: (%s,%s)" % (x,y))
-            acceptance = min(1.0, distance_prod(G, x,y)/distance_prod(G,x,y,switched=True))
+            acceptance = min(1.0, distance_prod(G,x,y,n)/distance_prod(G,x,y,n,switched=True))
             #print("acceptance=%s" % acceptance)
             if random.uniform(0,1) < acceptance:
                 #print("switching %d and %d" % (x,y))
-                try:
-                    switch_nodes(G, x, y)
-                except Exception as exc:
-                    logger.error("error occured at x,y = %d,%d", x,y)
-                    print(exc)
-                    break
+                switch_nodes(G, x, y)
             else:
                 #print("rejected switching %d and %d" % (x,y))
                 pass
