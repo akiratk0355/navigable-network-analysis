@@ -4,13 +4,13 @@ Created on Jan 6, 2017
 @author: akira
 '''
 
-from math import log
 import random, os, sys, argparse, logging, logging.handlers
 
 import networkx as nx
 import numpy as np
 
 from utils.misc import dist_ring, switch_nodes
+from utils.mcmc import mh_swap
 
 def logging_setup(args):
     log_root = logging.getLogger('')
@@ -25,31 +25,6 @@ def logging_setup(args):
         log_handler = logging.handlers.WatchedFileHandler(args.logfile, encoding='utf-8')
     log_handler.setFormatter(log_format)
     log_root.addHandler(log_handler)
-
-def distance_prod(G, x, y, size, switched=False):
-    prod = 1.0
-    #print("neighbors=%s" % G.neighbors(x))
-    #print("neighbors=%s" % G.neighbors(y))
-    if not switched:
-        for ngh in G.neighbors(x):
-            if ngh == y:
-                continue
-            prod *= dist_ring(x,ngh,size)
-        for ngh in G.neighbors(y):
-            if ngh == x:
-                continue
-            prod *= dist_ring(y,ngh,size)
-    else:
-        for ngh in G.neighbors(x):
-            if ngh == y:
-                continue
-            prod *= dist_ring(y,ngh,size)
-        for ngh in G.neighbors(y):
-            if ngh == x:
-                continue
-            prod *= dist_ring(x,ngh,size)
-    
-    return prod
 
 def main(argv):
     parser = argparse.ArgumentParser(description="Embedding simulator with location swapping")
@@ -99,29 +74,9 @@ def main(argv):
     
     # start
     n = G.number_of_nodes()
-    max_step = int(log(n, 2))*int(log(n, 2))
-    logger.info("n=%s, max step=%s", n, max_step)
-    
     mcs = int(args.iters*n)
-    precision = 1000
     logger.info("running %d mcs...", mcs)
-    percent = 0
-    for i in range(0, mcs):
-            div = mcs / precision
-            if i % div == 0:
-                logger.info("{}% done: reached {}".format(percent, i))
-                percent += 100 / precision
-            x = int(random.uniform(0,n))
-            y = int(random.uniform(0,n))
-            #print("trying x-y switch: (%s,%s)" % (x,y))
-            acceptance = min(1.0, distance_prod(G,x,y,n)/distance_prod(G,x,y,n,switched=True))
-            #print("acceptance=%s" % acceptance)
-            if random.uniform(0,1) < acceptance:
-                #print("switching %d and %d" % (x,y))
-                switch_nodes(G, x, y)
-            else:
-                #print("rejected switching %d and %d" % (x,y))
-                pass
+    G = mh_swap(G, mcs)
     
     logger.info("writing result to %s", outfile)
     nx.write_graphml(G, outfile)
