@@ -10,7 +10,7 @@ logger = logging.getLogger(__name__)
 class RoutingError(Exception):
     pass
 
-def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=True, use_deg=False):
+def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=True, deg_dict={}):
     path = [source]
     curr = source
     step = 0
@@ -27,22 +27,15 @@ def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=T
             raise RoutingError("number of hops reached a limit %d, terminating" % cutoff) 
         best = None
         best_to_tgt = size * dim# dummy
-        best_to_tgt_withdeg = best_to_tgt
 
         for neigh in G.neighbors(curr):
             if visited.get(neigh, False):
                 continue
             d = dist_lattice(neigh, target, size, dim=dim)
             logger.debug("checking neighbor %d: d(%d, %d)=%d", neigh, neigh, target, d)
-            if not use_deg:
-                if d <= best_to_tgt:
-                    best = neigh
-                    best_to_tgt = d
-            else:
-                if d/G.degree(neigh) <= best_to_tgt_withdeg:
-                    best = neigh
-                    best_to_tgt = d
-                    best_to_tgt_withdeg = d / G.degree(neigh)
+            if d/deg_dict.get(neigh,1.0) <= best_to_tgt:
+                best = neigh
+                best_to_tgt = d/deg_dict.get(neigh,1.0)                
         
         if curr_to_tgt < best_to_tgt:
             logger.debug("encountered dead-end at %d !", curr)
@@ -75,7 +68,18 @@ def average_greedy_path_length(G, trial_per_src=5, cutoff=None, use_local=False,
     lsum = 0
     success = 0
     size = G.number_of_nodes()
+    percent = 0
+    div = size//100
+
+    deg_dict = {}
+    if use_deg:
+        for nd in G.nodes():
+            deg_dict[nd] = G.degree(nd)
+        
     for src in range(0, size):
+        if src % div == 0:
+            logger.info("{}% done: reached {}".format(percent, src))
+            percent += 1
         for _ in range(0, trial_per_src):
             dst = int(random.uniform(0,size))
             while dst == src: # we luckily chose the same id, try again 
@@ -83,7 +87,7 @@ def average_greedy_path_length(G, trial_per_src=5, cutoff=None, use_local=False,
             
             #print("finding path from %s to %s" % (src, dst))
             try:
-                path, vstd, step = greedy_path(G, src, dst, cutoff=cutoff, use_local=use_local, strict=strict, use_deg=use_deg)
+                path, vstd, step = greedy_path(G, src, dst, cutoff=cutoff, use_local=use_local, strict=strict, deg_dict=deg_dict)
             except RoutingError:
                 #print("failed")
                 continue
