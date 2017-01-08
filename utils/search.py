@@ -1,8 +1,9 @@
 import logging, random
 from math import sqrt
 
-from .misc import dist_ring, localcon_ring
-from utils.misc import dist_lattice
+import numpy as np
+
+from utils.misc import dist_lattice, id_dist_ring, id_localcon_ring
 
 
 logger = logging.getLogger(__name__)
@@ -15,23 +16,20 @@ def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=T
     curr = source
     step = 0
     visited = {}
-    size = G.number_of_nodes()
-    if dim == 2:
-        size = int(sqrt(G.number_of_nodes()))
     
     while not curr == target:
         visited[curr] = True
-        curr_to_tgt = dist_lattice(curr, target, size, dim=dim)
+        curr_to_tgt = id_dist_ring(curr, target)
         logger.debug("current node is %d: d(%d, %d)=%d", curr, curr, target, curr_to_tgt)
         if cutoff and step >= cutoff:
             raise RoutingError("number of hops reached a limit %d, terminating" % cutoff) 
         best = None
-        best_to_tgt = size * dim# dummy
+        best_to_tgt = 100 # dummy
 
         for neigh in G.neighbors(curr):
             if visited.get(neigh, False):
                 continue
-            d = dist_lattice(neigh, target, size, dim=dim)
+            d = id_dist_ring(neigh, target)
             logger.debug("checking neighbor %d: d(%d, %d)=%d", neigh, neigh, target, d)
             if d/deg_dict.get(neigh,1.0) <= best_to_tgt:
                 best = neigh
@@ -45,9 +43,10 @@ def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=T
                     raise RoutingError("terminating at dead-end node %d: no unvisited neighbors" % curr)
                 else:
                     logger.debug("using the second best node %d", best)
-            elif use_local: #TODO: support use_local for dim == 2
-                pre, suc = localcon_ring(curr, size)
-                if dist_ring(pre, target, size) < dist_ring(suc, target, size):
+            elif use_local:
+                ndlist = sorted(G.nodes())
+                pre, suc = id_localcon_ring(ndlist, curr)
+                if id_dist_ring(pre, target) < id_dist_ring(suc, target):
                     best = pre
                 else:
                     best = suc
@@ -64,7 +63,7 @@ def greedy_path(G, source, target, dim=1, cutoff=None, use_local=False, strict=T
     visited[target] = True
     return (path, visited, step)
 
-def average_greedy_path_length(G, trial_per_src=5, cutoff=None, use_local=False, strict=True, use_deg=False):
+def average_greedy_path_length(G, trial_per_src=5, debug=False, cutoff=None, use_local=False, strict=True, use_deg=False):
     lsum = 0
     success = 0
     size = G.number_of_nodes()
@@ -72,18 +71,19 @@ def average_greedy_path_length(G, trial_per_src=5, cutoff=None, use_local=False,
     div = size//100
 
     deg_dict = {}
+    ndlist = sorted(G.nodes())
     if use_deg:
         for nd in G.nodes():
             deg_dict[nd] = G.degree(nd)
         
-    for src in range(0, size):
-        if src % div == 0:
-            logger.info("{}% done: reached {}".format(percent, src))
+    for i, src in enumerate(ndlist):
+        if debug and i % div == 0:
+            logger.info("{}% done: reached {}".format(percent, i))
             percent += 1
         for _ in range(0, trial_per_src):
-            dst = int(random.uniform(0,size))
+            dst = random.choice(ndlist)
             while dst == src: # we luckily chose the same id, try again 
-                dst = int(random.uniform(0,size))
+                dst = random.choice(ndlist)
             
             #print("finding path from %s to %s" % (src, dst))
             try:

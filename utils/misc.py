@@ -6,6 +6,7 @@ Created on Oct 27, 2016
 import random, logging
 
 import networkx as nx
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -46,7 +47,11 @@ def labels_from_attr(G, attr):
     return dict((n,d.get(attr, '')) for n,d in G.nodes(data=True))
 
 def switch_nodes(G, x, y):
-    temp = 0.01
+    nx.relabel_nodes(G, {x:2}, copy=False)
+    nx.relabel_nodes(G, {y:x}, copy=False)
+    nx.relabel_nodes(G, {2:y}, copy=False)
+    """
+    temp = -1.0
     G.add_node(temp) # temp
     # store x-edges
     ebunch = []
@@ -71,19 +76,20 @@ def switch_nodes(G, x, y):
     for neigh in G.neighbors_iter(temp):
         G.add_edge(*(y,neigh))
     G.remove_node(temp)
+    """
 
 def shuffle_position_ring(G, iteration=None):
     G = G.copy()
+    ndlist = G.nodes()
     size = G.number_of_nodes()
     if not iteration:
-        iteration = size
+        iteration = size * 100
     
-    for _ in range(0, iteration):     
-        n1 = int(random.uniform(0, size))
-        n2 = int(random.uniform(0, size))
-        logger.debug("switching %d and %d", n1, n2)
-        switch_nodes(G, n1, n2)
-        #G = nx.relabel_nodes(G, {n1:n2, n2:n1})
+    for _ in range(0, iteration):
+        x = random.choice(ndlist)
+        y = random.choice(ndlist)
+        logger.debug("switching %d and %d", x, y)
+        switch_nodes(G, x, y)
     
     return G
 
@@ -104,11 +110,62 @@ def color_path(G, path, color='b', color_def='k', width=4.0, width_def=0.5):
 def frac_local_contact(G):
     size = G.number_of_nodes()
     num = 0
-    for i in range(0,size):
-        if i == size - 1 and G.has_edge(i,0):
-            num += 1
-        if G.has_edge(i, i+1):
+    ndlist = sorted(G.nodes())
+    for i, nd in enumerate(ndlist):
+        if i == size - 1:
+            if G.has_edge(nd, ndlist[0]):
+                num += 1
+        elif G.has_edge(nd, ndlist[i+1]):
             num += 1
     return num/size
 
+def id_dist_ring(id1, id2):
+    return min(abs(id1 - id2), 1.0 - abs(id1 - id2))
 
+def id_localcon_ring(ndlist, node):
+    idx = ndlist.index(node)
+    if idx == 0:
+        return (ndlist[-1], ndlist[1])
+    elif idx == len(ndlist) - 1:
+        return (ndlist[-2], ndlist[0])
+    else:
+        return (ndlist[idx-1], ndlist[idx+1])
+
+def id_assign_random(G):
+    mapper = {}
+    for nd in G.nodes():
+        mapper[nd] = np.random.ranf()
+    G = nx.relabel_nodes(G, mapper)
+    return G
+
+# takes a graph int ID and map to [0,1) ID space 
+def id_assign_ordered(G):
+    mapper = {}
+    size = G.number_of_nodes()
+    for nd in G.nodes():
+        mapper[nd] = nd / size
+    G = nx.relabel_nodes(G, mapper)
+    return G
+
+def ordered_circular_layout(G, scale=1.,center=None):
+    if len(G) == 0:
+        return {}
+    nodes = np.array(sorted(G.nodes()))
+    twopi = 2.0*np.pi
+    theta = nodes*twopi
+    pos = np.column_stack([np.cos(theta), np.sin(theta)]) * scale
+    if center is not None:
+        pos += np.asarray(center)
+
+    return dict(zip(nodes, pos))
+
+def draw_autocrop(plt, pos):
+    cut = 1.2
+    xmax= cut*max(xx for xx,yy in pos.values())
+    ymax= cut*max(yy for xx,yy in pos.values())
+    plt.xlim(-xmax,xmax)
+    plt.ylim(-ymax,ymax)
+
+def write_custom(G, path, encoding='utf-8', prettyprint=True):
+    G = nx.OrderedGraph(G)
+    nx.write_graphml(G, path, encoding, prettyprint)

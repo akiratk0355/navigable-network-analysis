@@ -9,6 +9,7 @@ import os, sys, argparse, logging, logging.handlers
 import networkx as nx
 
 from utils.mcmc import mh_swap
+from utils.misc import id_assign_random
 
 def logging_setup(args):
     log_root = logging.getLogger('')
@@ -73,6 +74,7 @@ def main(argv):
         return 1
     
     # start
+    G = id_assign_random(G)
     n = G.number_of_nodes()
     mcs = int(args.iters*n)
     logger.info("running %d mcs...", mcs)
