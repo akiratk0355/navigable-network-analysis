@@ -55,9 +55,7 @@ def greedy_path(G, source, target, dim=1, cutoff=None,
                 best = neigh
                 best_to_tgt = d/deg_dict.get(neigh,1.0)                
         
-        if curr_to_tgt >= best_to_tgt:
-            pred_dict[best] = curr
-        else:
+        if curr_to_tgt < best_to_tgt:
             logger.debug("encountered dead-end at %f !", curr)
             if not strict:
                 if best == None: # no unvisited neighbors
@@ -83,7 +81,8 @@ def greedy_path(G, source, target, dim=1, cutoff=None,
                 logger.debug("using local connection %f", best)
             else:
                 raise RoutingError("terminating at dead-end node %f: no nodes closer to the target" % curr) 
-                
+        else:
+            pred_dict[best] = curr
         # move on to next node
         step += 1
         path.append(best)
