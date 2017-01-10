@@ -4,7 +4,7 @@ Created on Jan 7, 2017
 @author: akira
 '''
 
-import logging, random
+import logging, random, sys
 
 import networkx as nx
 import numpy as np
@@ -107,7 +107,8 @@ def mh_swap(G, mcs, precision=1000, random_walk=True):
     ndlist = sorted(G.nodes())
     for i in range(0, mcs):
         if i % div == 0:
-            logger.info("{}% done: reached {}".format(percent, i))
+            sys.stdout.write("{}% done: reached {}/{}".format(percent, i, mcs))
+            sys.stdout.flush()
             percent += 100 / precision
         x = random.choice(ndlist)
         y = random.choice(ndlist)
@@ -134,4 +135,6 @@ def mh_swap(G, mcs, precision=1000, random_walk=True):
         else:
             #print("rejected switching %d and %d" % (x,y))
             pass
+    sys.stdout.write("\nswapping done \n")
+    sys.stdout.flush()
     return G
