@@ -107,7 +107,7 @@ def mh_swap(G, mcs, precision=1000, random_walk=True):
     ndlist = sorted(G.nodes())
     for i in range(0, mcs):
         if i % div == 0:
-            sys.stdout.write("{}% done: reached {}/{}".format(percent, i, mcs))
+            sys.stdout.write("\r {0:.2f}% done: reached {1:d}/{2:d}".format(percent, i, mcs))
             sys.stdout.flush()
             percent += 100 / precision
         x = random.choice(ndlist)
