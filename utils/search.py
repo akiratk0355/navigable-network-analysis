@@ -154,9 +154,9 @@ class RoutingSimulator(object):
         ttl = round(log(size, 2)**2)
         percent = 0
         precision = 100
-        if size > 7000:
+        if 20000 > size > 7000:
             precision = 1000
-        elif size > 20000:
+        elif size >= 20000:
             precision = 10000
         div = size//precision
     
