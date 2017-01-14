@@ -9,18 +9,26 @@ logger = logging.getLogger(__name__)
 
 SOURCE = -1
 
+# routing modes
 LOCAL = 10
 FAIL = 1
 CONT = 2
 EVN = 3
-D2DFS = 4
-D3DFS = 5
+EVNR = 4
+D2DFS = 5
+D3DFS = 6
+
+# how no-unvisited-neighbors situation should be handled
+GIVEUP = 0
+BACKTRACK = 1
+RANDOM = 2 
 
 mode_name_to_num = {
     #"LOCAL": LOCAL,
     "FAIL": FAIL,
     "CONT": CONT,
     "EVN": EVN,
+    "EVNR": EVNR,
     "D2DFS": D2DFS,
     "D3DFS": D3DFS
     }
@@ -31,8 +39,9 @@ routingmode_opts = {
     FAIL: {},
     CONT: {"strict": False},
     EVN: {"strict": False},
-    D2DFS: {"strict": False, "backtrack": True},
-    D3DFS: {"strict": False, "backtrack": True}
+    EVNR: {"strict": False, "post_allvstd": RANDOM},
+    D2DFS: {"strict": False, "post_allvstd": BACKTRACK},
+    D3DFS: {"strict": False, "post_allvstd": BACKTRACK}
     }
 
 class RoutingError(Exception):
@@ -57,11 +66,12 @@ class Node(object):
         return self.visited
 
 def greedy_path(G, source, target, ttl=None, deg_dict={},
-                use_local=False, strict=True, backtrack=False):
+                use_local=False, strict=True, post_allvstd=GIVEUP):
     path = [source]
     curr = source
     hop = 0
     visited = {}
+    visited_pernode = {}
     pred_dict = {source:SOURCE}
     
     while not curr == target:
@@ -76,19 +86,48 @@ def greedy_path(G, source, target, ttl=None, deg_dict={},
         for neigh in G.neighbors(curr):
             if visited.get(neigh, False):
                 continue
+            """ # use this to revert to previous version
+            if neigh == pred_dict[curr]:
+                continue
+            if neigh in visited_pernode.get(curr, []):
+                continue
+            """
             d = id_dist_ring(neigh, target)
             logger.debug("checking neighbor {0:.6f}: d({1:.6f}, {2:.6f})={3:.6f}".format(neigh, neigh, target, d))
             if d/deg_dict.get(neigh,1.0) <= best_to_tgt:
                 best = neigh
                 best_to_tgt = d/deg_dict.get(neigh,1.0)                
         
+        # forwarded a request to a neighbor who has seen it before
+        if type(best) == float and visited.get(best, False):
+            logger.debug("%f chose %f who has already seen the request before, try something else",curr, best)
+            hop += 2
+            path.append(best)
+            path.append(curr)
+            try:
+                visited_pernode[curr].append(best)
+            except KeyError:
+                visited_pernode.update({curr:[best]})
+            try:
+                visited_pernode[best].append(curr)
+            except KeyError:
+                visited_pernode.update({best:[curr]})
+            continue
+        
         if curr_to_tgt < best_to_tgt:
             logger.debug("encountered dead-end at %f !", curr)
             if not strict:
                 if best == None: # no unvisited neighbors
-                    if backtrack and pred_dict[curr] == SOURCE:
+                    if post_allvstd == RANDOM:
+                        best = random.choice(G.neighbors(curr)) # TODO: DO NOT update pred_dict after random walk
+                        try: # mark as visited
+                            visited_pernode[best].append(curr)
+                        except KeyError:
+                            visited_pernode.update({best:[curr]})
+                        logger.debug("node %f has no unvisited neighbors, jumping to random neighbor %f", curr, best)
+                    elif post_allvstd == BACKTRACK and pred_dict[curr] == SOURCE:
                         raise RoutingError("terminating at dead-end node %f: source has touched all the neighbors" % curr)
-                    elif backtrack:
+                    elif post_allvstd == BACKTRACK:
                         best = pred_dict[curr]
                         logger.debug("node %f has no unvisited neighbors, returning to its predecessor %f", curr, best)
                     else:
@@ -113,6 +152,10 @@ def greedy_path(G, source, target, ttl=None, deg_dict={},
         # move on to next node
         hop += 1
         path.append(best)
+        try:
+            visited_pernode[curr].append(best)
+        except KeyError:
+            visited_pernode.update({curr:[best]})
         curr = best
         
     logger.debug("routing succeeded after %d steps!!", hop)
@@ -147,11 +190,12 @@ class RoutingSimulator(object):
             return mode_num_to_name[self.mode]
         return self.mode
     
-    def perform(self, G, show_progress=False, save_result=False):
+    def perform(self, G, show_progress=False, save_result=False, ttl=None):
         succ_hops = []
         success = 0
         size = G.number_of_nodes()
-        ttl = round(log(size, 2)**2)
+        if not ttl:
+            ttl = round(log(size, 2)**2)
         percent = 0
         precision = 100
         if size > 7000:
@@ -161,12 +205,13 @@ class RoutingSimulator(object):
     
         deg_dict = {}
         ndlist = sorted(G.nodes())
-        if self.mode == EVN or self.mode == D3DFS:
+        if self.mode == EVN or self.mode == EVNR or self.mode == D3DFS:
             for nd in G.nodes():
                 deg_dict[nd] = G.degree(nd)
         
         logger.info("performing routing simulation in mode %s\n    ttl=%d\n    network size=%d", 
                     self.get_mode(), ttl, size)
+        hist = {}
         for i, src in enumerate(ndlist):
             if show_progress and i % div == 0:
                 sys.stdout.write("\r{0:.2f}% done: reached {1:d}/{2:d}".format(percent, i, size))
@@ -187,12 +232,19 @@ class RoutingSimulator(object):
                 else:
                     succ_hops.append(hop)
                     success += 1
+                    if hop in hist:
+                        hist[hop] += 1
+                    else:
+                        hist[hop] = 1
         
         sys.stdout.write("\nsimulation done \n")
         sys.stdout.flush()
         srate = success/(size*self.trial_per_src)
         apl = np.average(succ_hops)
+        hist_frac = {}
+        for h in hist.keys():
+            hist_frac[h] = hist[h] / (size*self.trial_per_src)
         logger.info("\n    SUCC = %.3f\n    AHOPS = %.3f", srate, apl)
         if save_result:
             self.results.append(SimulationResult(self.mode, size, srate, apl))
-        return (srate, apl)
+        return (srate, apl, hist_frac)

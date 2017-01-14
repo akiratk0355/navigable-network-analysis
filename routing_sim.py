@@ -42,6 +42,8 @@ def main(argv):
                         help="Output file suffix")
     parser.add_argument("-m", "--mode", action="append", type=str, metavar="MODE", dest="modes", 
                         help="Specify routing algorithms to be used: FAIL, CONT, EVN, D2DFS, D3DFS, ALL")
+    parser.add_argument("-f", "--format", action="store", metavar="FORMAT")
+    parser.add_argument("--hist", action="store", type=int)
     args = parser.parse_args(argv)
     
     # Logging setup
@@ -62,6 +64,13 @@ def main(argv):
         for mode_str in args.modes:
             simulators.append(RoutingSimulator(mode_str))
     
+    if args.format == 'min':
+        second_col = 0
+    else:
+        second_col = -1
+    
+    ttl =  args.hist 
+    
     glist = []    
     try:
         for f in flist:
@@ -76,11 +85,19 @@ def main(argv):
         results = []
         for G in glist:
             size = G.number_of_nodes()
-            min_deg = sorted(nx.degree(G).values())[0]
-            ttl = round(log(size, 2)**2)
-            logger.info("size=%d, minimum deg=%d, TTL=%d", size, min_deg, ttl)
-            srate, apl = sim.perform(G, show_progress=True)
-            results.append((size, min_deg, srate, apl))
+            deg = sorted(nx.degree(G).values())[second_col]
+            if args.format == 'min':
+                logger.info("size=%d, min deg=%d", size, deg)
+            else:
+                logger.info("size=%d, max deg=%d", size, deg)
+            srate, apl, hist_frac = sim.perform(G, show_progress=True, ttl=ttl)
+            if args.hist:
+                outhist = "{}_hist_{}clip.csv".format(sim.get_mode(),deg)
+                logger.info("writing histogram into %s", outhist)
+                with open(outhist, 'a') as f:
+                    for h, per in hist_frac.items():
+                        f.write("{},{}\n".format(h,per))
+            results.append((size, deg, srate, apl))
             print("\n")
     
         out = "{}{}.csv".format(sim.get_mode(), args.suffix)
