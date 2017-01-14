@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 DIST_SCALE = 5 # 5 is optimal?
 
-def randomwalk(G, src, ttl=6):
+def randomwalk(G, src, ttl=10):
     curr = src
     while ttl > 0:
         curr = random.choice(G.neighbors(curr))
