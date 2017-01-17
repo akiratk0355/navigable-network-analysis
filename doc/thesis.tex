@@ -24,10 +24,36 @@
 \submissionjay{28}              % {年度（平成）}
 %% 摘要 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \abstract{%
-  本研究では, F2Fネットワークトポロジーのスモール・ワールド性を利用し, 効率的かつ非中央集権的なルーティングを実現するための手法を提起する. 
+  本研究では, ネットワークトポロジーのスモール・ワールド性を利用し, 効率的かつ非中央集権的なルーティングを実現するための手法を提起する. 
 }
 %% パッケージの読み込みや自分用のマクロの定義 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-\usepackage{amsmath,amssymb}
+\usepackage{amsmath,amssymb, amsthm}
+\usepackage{enumitem}
+\usepackage{subfigure}
+\usepackage{bm}
+\usepackage{type1cm}
+\usepackage{ascmac} % for box
+\usepackage{hyperref}
+\usepackage{url}
+\usepackage[xindy]{glossaries}
+%% term list
+\makeglossaries
+\newacronym{f2f}{F2F}{Friend-to-friend}
+\newglossaryentry{localcon}
+{
+    name={local contact},
+    description={距離空間上に配置されたグラフにおいて最も近距離にあるノード間を接続するエッジ}
+}
+\newglossaryentry{leaf}
+{
+    name={リーフノード},
+    description={次数1のノード}
+}
+\newglossaryentry{darknet}
+{
+    name={Darknet},
+    description={Friend-to-friendと同義}
+}
 \newcommand{\rme}{\mathrm{e}}
 
 %% 出力の制御 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -59,7 +85,7 @@
 %% 本文 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{序論}
 近年インターネットを介したコミュニケーションまたは出版は, 我々の生活において大きな位置を占めるようになってきた. それに伴いユーザーのプライバシー保護を重視したコミュニケーションツールの実装に対する需要が非常に高まっている. その要因として, 例えば近年ではエドワード・スノーデンによって公に明らかにされたアメリカ国家安全保障局(NSA)による大規模な大衆監視が挙げられる. \newline
-\ \ 特定の企業や団体が中央集権的に管理する情報共有方式はこのような監視・漏洩のリスクが高いため, 非中央集権的な情報共有を実現するためのアプローチとしてP2P方式が頻繁に採用される. P2Pは中心的な管理者を持たない分散的なオーバーレイネットワークであり, 一般的なクライアント-サーバー方式と比較して負荷分散, スケーラビリティ, 匿名性, 耐障害性等の点で優れている\cite{lua2005survey}. そしてP2P方式の中でも特にピアの匿名性・プライバシー保護を重視したものはfriend-to-friend(F2F)\cite{bricklin2000friend}, またはDarknet\cite{clarke2010private}と呼ばれる. F2F方式においてネットワーク上の各ノードは, 信頼のおける特定ノードとのみ通信するため, Chord\cite{stoica2001chord}などの分散ハッシュテーブル(DHT)方式とは異なり, ソフトウェアによって動的にネットワーク構造を最適化することはできず, ネットワーク構造は常に現実の信頼関係ネットワークの部分グラフに対応する. そしてネットワーク上で隣接していないノード同士がデータの送受信を行うためにはいずれかのノードが「知り合いの知り合い」を辿って他方のノードに到達するための経路を探索する必要性が生じる\cite{roos2016dealing}.\newline
+\ \ 特定の企業や団体が中央集権的に管理する情報共有方式はこのような監視・漏洩のリスクが高いため, 非中央集権的な情報共有を実現するためのアプローチとしてP2P方式が頻繁に採用される. P2Pは中心的な管理者を持たない分散的なオーバーレイネットワークであり, 一般的なクライアント-サーバー方式と比較して負荷分散, スケーラビリティ, 匿名性, 耐障害性等の点で優れている\cite{lua2005survey}. そしてP2P方式の中でも特にピアの匿名性・プライバシー保護を重視したものはfriend-to-friend(\acrshort{f2f})\cite{bricklin2000friend}, またはDarknet\cite{clarke2010private}と呼ばれる. F2F方式においてネットワーク上の各ノードは, 信頼のおける特定ノードとのみ通信するため, Chord\cite{stoica2001chord}などの分散ハッシュテーブル(DHT)方式とは異なり, ソフトウェアによって動的にネットワーク構造を最適化することはできず, ネットワーク構造は常に現実の信頼関係ネットワークの部分グラフに対応する. そしてネットワーク上で隣接していないノード同士がデータの送受信を行うためにはいずれかのノードが「知り合いの知り合い」を辿って他方のノードに到達するための経路を探索する必要性が生じる\cite{roos2016dealing}.\newline
 \ \ F2Fオーバーレイネットワークの最も代表的な実装例は, Freenet\cite{clarke2001freenet}のDarknetモード\cite{clarke2010private}であり, 基本的なプロトコルはSandberg\cite{sandberg2006distributed}が2006年に提案した手法に基づいている. Freenetでは, 信頼関係のネットワークがスモールワールド性を持つと仮定し, 単純なgreedyルーティング (各ノードは隣接ノード中, 最もターゲットに近いノードを次ノードとして選択) により, $O(\log^2 n)$のホップ数でルーティングを可能にするKleinbergのスモールワールドネットワークモデル\cite{kleinberg2000small}に基づいている. \newline
 \ \ ただしFreenetには未だ様々な問題点が残っている. 第一にSandbergが提案した手法では, Kleinbergモデルが依拠している「格子上で最も近距離にいるノード同士は必ずエッジを持つ」という仮定を決定論的に満たすことができないため, Freenetの実装においてはgreedyルーティングの代わりにdistance-directed depth-first search ($D^2$-$DFS$)が採用されている. しかしこの$D^2$-$DFS$アルゴリズムが$O(\log^2 n)$のホップ数を達成することができないことはRoos, Strufeらにより解析的に証明された\cite{roos2012provable} \cite{roos2016dealing}\cite{roos2016analyzing}. またFreenetでは, ノード集合$V$から座標空間$C= [0,1)$への「埋め込み」(embedding) $\phi: V \to C$を生成するMetropolis-Hastingsアルゴリズムの一環としてノード同士が座標(Freenetの実装ではID)を交換する操作を反復するが, この際悪意のあるノードが虚偽のID報告を繰り返すことにより, ノードが格子上に偏在し, 結果的にルーティングの効率性が低下するというPitch black attack\cite{evans2007routing}などの深刻な脆弱性が指摘されている. よってFreenetのDarkenetモードは効率性や頑健性の面で問題点が残り, 現在もそれらを解決するための研究が続けられている. \newline
 \ \ 本研究では, 以上に挙げられたFreenetの問題点のうちルーティングの効率性に着目する. 今回我々はSimsek, Jensenらによって提案されたルーティングアルゴリズム, expected-value navigation (EVN)\cite{csimcsek2008navigating}をFreenetプロトコルに適用可能な形に修正することにより, 埋め込みの不正確さと, 現実のネットワークに存在する多数のリーフノードに対しロバストなルーティングアルゴリズムを提起する.
@@ -103,7 +129,7 @@
 \fi
 
 \section{問題設定}
-TBD
+\gls{localcon}の存在に依存せず, 多数の\gls{leaf}が存在するグラフにおいて効率的なルーティングは可能か.
 \section{提案手法}
 TBD
    \subsection{ネットワークモデル}
@@ -148,16 +174,8 @@ TBD
 
 \section{用語集}
 
-\begin{table}[htbp]
-  \caption{これは意味のない表です．}
-  \centering
-  \begin{tabular}{c|cc}
-      &  A  &  B \\
-    \hline
-    C &  70 & 80 \\
-    D & 100 &  0
-  \end{tabular}
-\end{table}
+\printglossaries
+
 
 %% 本文ここまで %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \fi
