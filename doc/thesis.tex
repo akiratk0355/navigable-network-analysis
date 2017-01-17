@@ -65,9 +65,12 @@
 \ \ 本研究では, 以上に挙げられたFreenetの問題点のうちルーティングの効率性に着目する. 今回我々はSimsek, Jensenらによって提案されたルーティングアルゴリズム, expected-value navigation (EVN)\cite{csimcsek2008navigating}をFreenetプロトコルに適用可能な形に修正することにより, 埋め込みの不正確さと, 現実のネットワークに存在する多数のリーフノードに対しロバストなルーティングアルゴリズムを提起する.
 
  \section{先行研究}
+   \subsection{P2Pネットワーク}
+   \subsection{複雑ネットワーク}
+   \subsection{Kleinbergモデル}
+   \subsection{Greedy embedding}
    \subsection{Freenetプロトコル: 埋め込みとルーティング}
    \subsection{EVN: Expected-value navigation}
-   TBD
 \if0
 \cite{clarke2001freenet}
 \cite{sandberg2006distributed}
@@ -105,8 +108,6 @@ TBD
 TBD
    \subsection{ネットワークモデル}
    TBD
-   \subsection{埋め込みアルゴリズム}
-   TBD
    \subsection{ルーティングアルゴリズム}
    TBD
 
@@ -116,9 +117,9 @@ TBD
   TBD
   \subsection{シミュレーション結果}
 \begin{figure}[htbp]
-  \centerline{\includegraphics[width=120mm]{../fig/core_succ.eps}}
-  \caption{最低次数とルーティング成功率}
-  \label{fig:core_succ}
+  \centerline{\includegraphics[width=120mm]{../fig/succ_hops_full.eps}}
+  \caption{ID割り当て後のWeb of Trustネットワークにおける各ルーティングアルゴリズムの成功率と平均ホップ数}
+  \label{fig:succ_hops_full}
 \end{figure}
 
 \section{結論と今後の展望}
@@ -142,7 +143,7 @@ TBD
 %% 付録は不要ならば削除してよい．
 \appendix
 
-\section{意味のない付録}
+\section{用語集}
 
 \begin{table}[htbp]
   \caption{これは意味のない表です．}
