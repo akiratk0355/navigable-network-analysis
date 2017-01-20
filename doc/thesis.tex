@@ -29,7 +29,6 @@
 %% パッケージの読み込みや自分用のマクロの定義 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \usepackage{amsmath,amssymb, amsthm}
 \usepackage{enumitem}
-\usepackage{subfigure}
 \usepackage{bm}
 \usepackage{type1cm}
 \usepackage{ascmac} % for box
@@ -39,6 +38,8 @@
 \usepackage{algorithm}
 \usepackage{algpseudocode}
 \usepackage[justification=centering]{caption}
+\usepackage{subcaption}
+\usepackage{graphicx}
 %\usepackage{algorithm2e}
 \parindent = 0pt
 \makeatletter
@@ -191,8 +192,8 @@ f(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
 よって$D^3$-$DFS$において, メッセージを持つノード$u$は(\ref{eqn:d3dfs-heuristic})式を最小にするような$v \in N(u)$にメッセージをフォワードすることが基本的な動作となる. これは通常の距離のみを用いたgreedyルーティングに次数の重み付けを付加したものと見なすことができる. \newline
 次に, $u$の全ての隣接ノードが以前にメッセージを受け取ったことがあるような状況を考える. このような場合\cite{csimsek2008navigating}では次ノードを隣接ノードの中からランダムに選択するとしているが, ランダムなノード選択では同様に隣接ノードが全て訪問済みであるようなノードに何度も到達する可能性があり無駄なステップが増えることが予想されるため, $D^3$-$DFS$ではその名前が表すように, $u$に初めてメッセージをフォワードしたノード (predecessor) にメッセージを戻すとする.  \newline
 
-以上$D^3$-$DFS$の動作に関する概略を述べた. 詳細なアルゴリズムは以下の擬似コードAlgorithm \ref{alg:d3dfs}に示す. ただし擬似コードの記述スタイルについては\cite{roos2013contribution}を参考にした.
-   \begin{algorithm}[!h]
+以上$D^3$-$DFS$の動作に関する概略を述べた. 詳細なアルゴリズムは擬似コードとしてAlgorithm \ref{alg:d3dfs}に示す. ただし擬似コードの記述スタイルについては\cite{roos2013contribution}を参考にした.
+   \begin{algorithm}[htbp]
     \caption{$D^3$-$DFS(\textrm{Node } u,\textrm{ Node } p, \textrm{ ID } t,\textrm{ Set }B, \textrm{ TTL }c$)}\label{alg:d3dfs}
     \begin{algorithmic}[1]
      \State \# $u$: current message holder, $p$: previous message holder
@@ -244,16 +245,16 @@ f(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
 
    \begin{enumerate}[label=(\alph*)]
     \item FAIL: 純粋なgreedyルーティング. dead-endに達したらその時点でルーティング失敗とする\cite{sandberg2006distributed}
-    \item CONT: FAILより緩い条件でのgreedyルーティング. dead-endに達したも隣接ノード中で最もターゲットに近いノードにフォワードする. 隣接ノードが全て訪問済みの場合ルーティング失敗とする. \cite{sandberg2006distributed}
+    \item CONT: FAILより緩い条件でのgreedyルーティング. dead-endに達しても隣接ノード中で最もターゲットに近いノードにフォワードする. 隣接ノードが全て訪問済みの場合ルーティング失敗とする. \cite{sandberg2006distributed}
     \item EVN: ノード選択に$D^3$-$DFS$と同様のヒューリスティックを用いる. 隣接ノードが全て訪問済みの場合ルーティング失敗とする. 
     \item EVNR: ノード選択に$D^3$-$DFS$と同様のヒューリスティックを用いる. 隣接ノードが全て訪問済みの場合, 隣接ノードからランダムに選んだノードにフォワードして続行する. \cite{csimcsek2008navigating}
     \item $D^2$-$DFS$: ノード選択はCONTと同様. 隣接ノードが全て訪問済みの場合, predecessorにメッセージをフォワード(backtracking)して続行する. \cite{clarke2001freenet}, \cite{clarke2010private}
    \end{enumerate}
 
-  また成功率の異なるルーティングアルゴリズム間で平均ホップ数の大小を比較するのは不適切であるため, $TTL$を長めに(恣意的ではあるが本研究では$500$とする)設定してルーティング実験を同様に$5|V|$回行った場合の「各ホップ数以下で成功したルーティング試行の割合」を集計した.
+  また成功率の異なるルーティングアルゴリズム間で平均ホップ数の大小を比較するのは不適切であるため, $TTL$を長めに(恣意的ではあるが本研究では$500$とする)設定してルーティング実験を同様に$5|V|$回行った場合の「各ホップ数以下で成功したルーティング試行の割合」を集計した. この実験に関しては$TTL$が0にならない限りルーティングを継続するEVNR, $D^2$-$DFS$, $D^3$-$DFS$についてのみ行うこととする. 
 
   \subsection{使用データ} \label{sec:wot}
-  先行研究の多くは埋め込みやルーティングのアルゴリズムのパフォーマンス評価のため, 実世界のソーシャルネットワークデータを使用している. なぜならFreenetのような実際にデプロイされているF2Fネットワークはその性質上ネットワーク全体のトポロジーを把握することが不可能であり, 代わりにF2Fオーバーレイソーシャルネットワークデータが同様のトポロジーを持つと. 本研究もそれに習いF2Fネットワークの実データとして, 2016年12月11日時点におけるPretty Good Privacy (PGP)のWeb of Trust (\acrshort{wot})を用いた. PGPは暗号化プログラムであり, WoTはPGP公開鍵の信頼性を非中央集権的な方法で担保するための仕組みである(詳細は\cite{zimmermann1995official}, \cite{abdul1998distributed}を参照). \acrshort{wot}の形成するネットワークは現実世界における人同士の信頼関係ネットワークの部分グラフであり, 公開鍵の所有者はノードに, 公開鍵に対するデジタル署名がエッジに対応する. 例えば「AliceがBobの公開鍵にデジタル署名した」場合AliceからBobへのエッジが存在しているといった具合である. \acrshort{wot}は本来有向グラフであるが, 先行研究に従い「公開鍵の所有者間で相互にデジタル署名が行われている」ことを「ノード間に信頼がある」と定義し, 元のネットワークデータから単方向の署名に対応するエッジを削除したものからgiant component (最もノード数の多い連結部分グラフ) を抽出し, これを無向グラフとして扱うこととする. 以上のような操作によって得られたグラフを$G=(V,E)$とする. ネットワークデータの処理, ネットワークデータ解析は全てNetworkX 1.11\cite{hagberg2008exploring}を用いて行った. \newline
+  F2Fネットワークに関わる先行研究の多くは埋め込みやルーティングアルゴリズムのパフォーマンス評価のため, 実世界のソーシャルネットワークデータを使用している. なぜならFreenetのような実際にデプロイされているF2Fネットワークはその性質上ネットワーク全体のトポロジーを把握することが不可能であり, 代わりに信頼関係を表すソーシャルネットワークデータがF2Fネットワークトポロジーを近似するものと考えられるからである. 本研究もそれに習いF2Fネットワークの実データとして, 2016年12月11日時点におけるPretty Good Privacy (PGP)のWeb of Trust (\acrshort{wot})を用いた. PGPは暗号化プログラムであり, WoTはPGP公開鍵の信頼性を非中央集権的な方法で担保するための仕組みである(詳細は\cite{zimmermann1995official}, \cite{abdul1998distributed}を参照). \acrshort{wot}の形成するネットワークは現実世界における人同士の信頼関係ネットワークの部分グラフであり, 公開鍵の所有者はノードに, 公開鍵に対するデジタル署名がエッジに対応する. 例えば「AliceがBobの公開鍵にデジタル署名した」場合AliceからBobへのエッジが存在しているといった具合である. \acrshort{wot}は本来有向グラフであるが, 先行研究に従い「公開鍵の所有者間で相互にデジタル署名が行われている」ことを「ノード間に信頼がある」と定義し, 元のネットワークデータから単方向の署名に対応するエッジを削除したものからgiant component (最もノード数の多い連結部分グラフ) を抽出し, これを無向グラフとして扱うこととする. 以上のような操作によって得られたグラフを$G=(V,E)$とする. ネットワークデータの処理, ネットワークデータ解析は全てNetworkX 1.11\cite{hagberg2008exploring}を用いて行った. \newline
  WoTをシミュレーション用実データとして用いている\cite{sandberg2006distributed}や\cite{clarke2010private}では以上に述べたのと同様の前処理の後さらにネットワークの局所的な部分グラフを取り出したり, 低次数ノードを削除するなどの操作を加えた後シミュレーションを行っているが, 本研究では現実のF2Fネットワークトポロジーにおけるルーティングのパフォーマンスをより正確に評価するために, まずはそういった意図的な操作は施さずにシミュレーションを行う. このように最低限の前処理が施されたのみで, 意図的な操作が加えられていないデータを以下では便宜的に「未処理のネットワーク」と呼ぶこととする. その後, ハブノードの消失に対する頑健性を考察するために次数上限を設けた後のネットワーク, Freenetプロトコルにおける「理想的」な状態である次数下限を設けた後のネットワーク, そして\cite{sandberg2006distributed}にて用いられたアルゴリズムに従って抽出された局所的な部分グラフに対しても同様にシミュレーション実験を行う. \newline
   \acrshort{wot} $G$の解析の結果得られた基本情報を表\ref{table:wot_info}に示す. 表\ref{table:wot_info}と\acrshort{wot}の次数分布をプロットした図\ref{fig:wot_dd}に見られるように, 高いクラスタリング係数, 小さな平均最短経路長, べき則に従う次数分布等, WoTは典型的なスモールワールドネットワークかつスケールフリーネットワークの特徴を持つことが確認できる. 
   \begin{table}[!h]  
@@ -267,6 +268,7 @@ f(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
     最大次数 & 885 \\ \hline
     クラスタリング係数 & 0.31\\ \hline
     スケーリング指数 $\gamma$ & 1.92 \\ \hline
+    次数101以上を持つノードの割合 & 0.07 \\ \hline
    \end{tabular}
   \end{center}
     \caption{2016年12月11日時点におけるWeb of Trustの基本情報 \\ 使用データセット: \url{https://wot.siccegge.de/download/2016-12-11.wot}}
@@ -274,37 +276,62 @@ f(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
   \end{table}
 
 
-     \begin{figure}[!h]
+     \begin{figure}[htbp]
       \centerline{\includegraphics[width=100mm]{../fig/wot_degree_distribution.eps}}
       \caption{Web of Trustネットワークの次数分布}
       \label{fig:wot_dd}
      \end{figure}
   \subsection{シミュレーション結果}
    \subsubsection{未処理のネットワークに対する結果}
-   図\ref{fig:succ_hops_full}, \ref{fig:cml_noclip}に未処理のネットワークに対するルーティングシミュレーション実験の結果を示す. 
-   \begin{figure}[!h]
+   まずWoTネットワークをID空間に埋め込んだ様子を図\ref{fig:wot_emb}に示す. (a)の図は各ノードに独立にランダムなIDを割り当てただけのもので, (b)は(a)を初期状態としてSWAPアルゴリズムを適用し$6000|V|$回反復した後の様子を表す. Kleinbergモデルによって生成されたグラフの配置と同様に(b)の図には「距離が近いノードどうしほどエッジを持ちやすい」という特徴が現れており, Kleinbergモデルの性質が「復元」されたのが視覚的にも確認出来る. \newline
+   またlocal contactの存在率$p_{\rm{local}}$を以下のように定義する.
+   \begin{eqnarray*}
+    p_{\rm{local}} = \frac{\mbox{ID空間上で最も近距離にいるノード同士を接続するエッジの本数}}{|V|}
+   \end{eqnarray*}
+   $p_{\rm{local}}$を(a), (b)について共に算出したところ, (b)の方がlocal contactの存在率が高くなっているものの1.0からは程遠いため, 埋め込み後のネットワークにおける単純なgreedyルーティングの効率性が担保されないことが, この時点ですでに予測される. \newline 
+   \begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../fig/wot_default_random_thesis.png}
+        \caption{SWAP適用前 \\ $p_{\rm{local}} = 0.0002$}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../fig/wot_emb_sandberg_thesis.png}
+        \caption{SWAP適用後 \\ $p_{\rm{local}} = 0.23$}
+    \end{subfigure}
+    \caption{ID空間$C=[0,1)$に埋め込まれたWeb of Trustネットワーク}
+    \label{fig:wot_emb}
+\end{figure}
+   次に図\ref{fig:wot_emb}(b)のネットワークに対するルーティングシミュレーションを行った結果を図\ref{fig:succ_hops_full}, \ref{fig:cml_noclip}に示す.  シミュレーションの結果$D^3$-$DFS$は$D^2$-$DFS$を15\%以上成功率で上回り, にも関わらず平均ホップ数を20以上短縮するという大幅なパフォーマンスの改善を見せた. またEVNRと$D^3$-$DFS$は成功率, 平均ホップ数共に拮抗しており, 図\ref{fig:cml_noclip}から読み取れる通り, 各ホップ数内に成功したルーティングの割合は$D^3$-$DFS$がごく僅かに上回る結果となった. \ref{csimcsek2008navigating}では, 隣接ノードが全て訪問済みの場合ランダムに選ばれた隣接ノードにフォワードすることが最も高いパフォーマンスを記録したと述べられいるが, 今回の実験結果はそれに反することがわかった. \newline
+   一方, 隣接ノードが全て訪問済みの場合にルーティング失敗とする3つのルーティングについて着目すると, 単純なgreedyルーティングのヒューリスティックを利用するFAILとCONTの成功率は非常に低いが, EVNのヒューリスティックを導入するだけで大幅な改善が見られた. これはたとえターゲットに近くとも次数が極端に低いノードにメッセージがフォワードがされづらくなったためと考えられる.
+   \begin{figure}[htbp]
     \centerline{\includegraphics[width=100mm]{../fig/succ_hops_full.eps}}
     \caption{ID割り当て後のWeb of Trustネットワークにおける各ルーティングアルゴリズムの成功率と平均ホップ数}
     \label{fig:succ_hops_full}
    \end{figure}
-   \begin{figure}[!h]
+   \begin{figure}[htbp]
     \centerline{\includegraphics[width=100mm]{../fig/cml_noclip.eps}}
     \caption{ID割り当て後のWeb of Trustネットワークにおける各ホップ数以下で成功したルーティング試行の割合}
     \label{fig:cml_noclip}
    \end{figure}
 
    \subsubsection{次数上限を設けたネットワークに対する結果}
-   \begin{figure}[!h]
+   次に未処理のWoTネットワークデータに次数上限を設け, ネットワーク全体でごく僅かな割合を占める少数のハブノードを取り除いたグラフに対して前節と同じシミュレーションを埋め込みの段階も含めて行った際の結果を図\ref{fig:clip_succ}, \ref{fig:clip_hops}に示す. ここで$k_{\max}$を次数上限とする. 2017年1月20日現在, FreenetのDarknetモードでは特に接続ノード数の上限はないが, Opennetモードの接続数上限が100であるため, 本研究でも$k_{\max}=100$を基準とし, さらに$k_{\max}$を減少させた場合についても検証を行った. 実際にデプロイされたF2Fオーバーレイネットワークにおけるノードは個人利用のマシンが大半であると想定されるため, 100という数字は同時接続数制限として妥当な数字と考えられる. 
+   \begin{figure}[htbp]
     \centerline{\includegraphics[width=100mm]{../fig/clip_succ.eps}}
     \caption{次数上限を設定したWeb of Trustネットワークにおける各ルーティングアルゴリズムの成功率}
     \label{fig:clip_succ}
    \end{figure}
-   \begin{figure}[!h]
+   \begin{figure}[htbp]
     \centerline{\includegraphics[width=100mm]{../fig/clip_hops.eps}}
     \caption{次数上限を設定したWeb of Trustネットワークにおける各ルーティングアルゴリズムの平均ホップ数}
     \label{fig:clip_hops}
    \end{figure}
-
+   \begin{figure}[htbp]
+    \centerline{\includegraphics[width=100mm]{../fig/cml_100clip.eps}}
+    \caption{次数上限を設定したWeb of Trustネットワークにおける各ホップ数以下で成功したルーティング試行の割合 ($k_{\max}=100$)}
+    \label{fig:cml_noclip}
+   \end{figure}
 \section{結論と今後の展望}
 TBD
 %% 謝辞 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
