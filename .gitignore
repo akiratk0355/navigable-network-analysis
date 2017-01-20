@@ -2,6 +2,8 @@ fig/cite
 doc/thesis-slides-interim.odp
 .ipynb_checkpoints/
 __pycache__/
+
+# tex
 *.aux
 *.dvi
 *.log
@@ -13,5 +15,6 @@ __pycache__/
 *.gls
 *.out
 *.xdy
+*.xbb
 *~
 *#
