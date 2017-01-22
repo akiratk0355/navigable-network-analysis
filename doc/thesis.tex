@@ -41,7 +41,7 @@
 \usepackage{subcaption}
 \usepackage{graphicx}
 %\usepackage{algorithm2e}
-\parindent = 0pt
+%\parindent = 0pt
 \makeatletter
 \makeatother
 \newcommand{\argmax}{\mathop{\rm arg~max}\limits}
@@ -124,18 +124,101 @@
 \setcounter{page}{1}            % 本文のページ番号を1から始める
 %% 本文 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \section{序論}
-近年インターネットを介したコミュニケーションまたは出版は, 我々の生活において大きな位置を占めるようになってきた. それに伴いユーザーのプライバシー保護を重視したコミュニケーションツールの実装に対する需要が非常に高まっている. その要因として, 例えば近年ではエドワード・スノーデンによって公に明らかにされたアメリカ国家安全保障局(NSA)による大規模な大衆監視が挙げられる. \newline
-特定の企業や団体が中央集権的に管理する情報共有方式はこのような監視・漏洩のリスクが高いため, 非中央集権的な情報共有を実現するためのアプローチとしてP2P方式が頻繁に採用される. P2Pは中心的な管理者を持たない分散的なオーバーレイネットワークであり, 一般的なクライアント-サーバー方式と比較して負荷分散, スケーラビリティ, 匿名性, 耐障害性等の点で優れている\cite{lua2005survey}. そしてP2P方式の中でも特にピアの匿名性・プライバシー保護を重視したものはfriend-to-friend(\acrshort{f2f})\cite{bricklin2000friend}, またはDarknet\cite{clarke2010private}と呼ばれる. F2F方式においてネットワーク上の各ノードは, 信頼のおける特定ノードとのみ通信するため, Chord\cite{stoica2001chord}などの分散ハッシュテーブル(DHT)方式とは異なり, ソフトウェアによって動的にネットワーク構造を最適化することはできず, ネットワーク構造は常に現実の信頼関係ネットワークの部分グラフに対応する. そしてネットワーク上で隣接していないノード同士がデータの送受信を行うためにはいずれかのノードが「知り合いの知り合い」を辿って他方のノードに到達するための経路を探索する必要性が生じる\cite{roos2016dealing}.\newline
-F2Fオーバーレイネットワークの最も代表的な実装例は, Freenet\cite{clarke2001freenet}のDarknetモード\cite{clarke2010private}であり, 基本的なプロトコルはSandberg\cite{sandberg2006distributed}が2006年に提案した手法に基づいている. Freenetでは, 信頼関係のネットワークがスモールワールド性を持つと仮定し, 単純なgreedyルーティング (各ノードは隣接ノード中, 最もターゲットに近いノードを次ノードとして選択) により, $O(\log^2 n)$のホップ数でルーティングを可能にするKleinbergのスモールワールドネットワークモデル\cite{kleinberg2000small}に基づいている. \newline
-ただしFreenetには未だ様々な問題点が残っている. 第一にSandbergが提案した手法では, Kleinbergモデルが依拠している「格子上で最も近距離にいるノード同士は必ずエッジを持つ」という仮定を決定論的に満たすことができないため, Freenetの実装においてはgreedyルーティングの代わりにdistance-directed depth-first search ($D^2$-$DFS$)が採用されている. しかしこの$D^2$-$DFS$アルゴリズムが特定の条件下において$O(\log^2 n)$のホップ数を達成することができないことはRoos, Strufeらにより解析的に証明された\cite{roos2012provable} \cite{roos2016dealing}\cite{roos2016analyzing}. またFreenetでは, ノード集合$V$から座標空間$C= [0,1)$への「\gls{embedding}」(embedding) $\phi: V \to C$を生成するMetropolis-Hastingsアルゴリズムの一環としてノード同士が座標(Freenetの実装ではID)を交換する操作を反復するが, この際悪意のあるノードが虚偽のID報告を繰り返すことにより, ノードが格子上に偏在し, 結果的にルーティングの効率性が低下するというPitch black attack\cite{evans2007routing}などの深刻な脆弱性が指摘されている. よってFreenetのDarkenetモードは効率性や頑健性の面で問題点が残り, 現在もそれらを解決するための研究が続けられている. \newline
+近年インターネットを介したコミュニケーションまたは出版は, 我々の生活において大きな位置を占めるようになってきた. それに伴いユーザーのプライバシー保護を重視したコミュニケーションツールの実装に対する需要が非常に高まっている. その要因として, 例えば近年ではエドワード・スノーデンによって公に明らかにされたアメリカ国家安全保障局(NSA)による大規模な大衆監視が挙げられる.
+
+特定の企業や団体が中央集権的に管理する情報共有方式はこのような監視・漏洩のリスクが高いため, 非中央集権的な情報共有を実現するためのアプローチとしてP2P方式が頻繁に採用される. P2Pは中心的な管理者を持たない分散的なオーバーレイネットワークであり, 一般的なクライアント-サーバー方式と比較して負荷分散, スケーラビリティ, 匿名性, 耐障害性等の点で優れている\cite{lua2005survey}. そしてP2P方式の中でも特にピアの匿名性・プライバシー保護を重視したものはfriend-to-friend(\acrshort{f2f})\cite{bricklin2000friend}, またはDarknet\cite{clarke2010private}と呼ばれる. F2F方式においてネットワーク上の各ノードは, 信頼のおける特定ノードとのみ通信するため, Chord\cite{stoica2001chord}などの分散ハッシュテーブル(DHT)方式とは異なり, ソフトウェアによって動的にネットワーク構造を最適化することはできず, ネットワーク構造は常に現実の信頼関係ネットワークの部分グラフに対応する. そしてネットワーク上で隣接していないノード同士がデータの送受信を行うためにはいずれかのノードが「知り合いの知り合い」を辿って他方のノードに到達するための経路を探索する必要性が生じる\cite{roos2016dealing}.
+
+F2Fオーバーレイネットワークの最も代表的な実装例は, Freenet\cite{clarke2001freenet}のDarknetモード\cite{clarke2010private}であり, 基本的なプロトコルはSandberg\cite{sandberg2006distributed}が2006年に提案した手法に基づいている. Freenetでは, 信頼関係のネットワークがスモールワールド性を持つと仮定し, 単純なgreedyルーティング (各ノードは隣接ノード中, 最もターゲットに近いノードを次ノードとして選択) により, $O(\log^2 n)$のホップ数でルーティングを可能にするKleinbergのスモールワールドネットワークモデル\cite{kleinberg2000small}に基づいている.
+
+ただしFreenetには未だ様々な問題点が残っている. 第一にSandbergが提案した手法では, Kleinbergモデルが依拠している「格子上で最も近距離にいるノード同士は必ずエッジを持つ」という仮定を決定論的に満たすことができないため, Freenetの実装においてはgreedyルーティングの代わりにdistance-directed depth-first search ($D^2$-$DFS$)が採用されている. しかしこの$D^2$-$DFS$アルゴリズムが特定の条件下において$O(\log^2 n)$のホップ数を達成することができないことはRoos, Strufeらにより解析的に証明された\cite{roos2012provable}\cite{roos2016dealing}\cite{roos2016analyzing}. またFreenetでは, ノード集合$V$から座標空間$C= [0,1)$への「\gls{embedding}」(embedding) $\phi: V \to C$を生成するMetropolis-Hastingsアルゴリズムの一環としてノード同士が座標(Freenetの実装ではID)を交換する操作を反復するが, この際悪意のあるノードが虚偽のID報告を繰り返すことにより, ノードが格子上に偏在し, 結果的にルーティングの効率性が低下するというPitch black attack\cite{evans2007routing}などの深刻な脆弱性が指摘されている. よってFreenetのDarkenetモードは効率性や頑健性の面で問題点が残り, 現在もそれらを解決するための研究が続けられている.
+
 本研究では, 以上に挙げられたFreenetの問題点のうちルーティングの効率性に着目する. 今回我々はSimsek, Jensenらによって提案されたルーティングアルゴリズム, expected-value navigation (EVN)\cite{csimcsek2008navigating}をFreenetプロトコルに適用可能な形に修正することにより, スケールフリー性を持った\acrshort{f2f}ネットワークにおいて既存ルーティングアルゴリズムよりも高いパフォーマンスを発揮する$D^3$-$DFS$を提案する. また, 先行研究のシミュレーション実験においてはルーティングの成功率が向上するように実データの恣意的な改変が施されていたが, 本研究では改変を施さない実データに対するシミュレーション実験を行うことにより, 現実の\acrshort{f2f}トポロジーにより近いネットワークにおけるルーティングアルゴリズムのパフォーマンス評価を行った.
 
  \section{先行研究}
    \subsection{P2Pネットワーク}
    \subsection{複雑ネットワーク}
    \subsection{Kleinbergモデル} \label{sec:kleinberg}
-   \subsection{Greedy embedding}
+   KleinbergはMilgramのスモールワールド実験において個々人が友人関係ネットワークの全体像を知らず, ターゲットの住所, 職業と各自の友人の住所という限られた情報のみを用いたにも関わらず, 短いホップ数でターゲットまで手紙を届けることができたことに着想を得て, 分散的(decentralized)なルーティングが効率的となるようなスモールワールドネットワークモデルを提唱した\cite{kleinberg2000small}.
+
+   Kleinbergのスモールワールドネットワークモデルは以下の手順で生成されるグラフのクラス$K(n,m,p,q,r)$として定義される.
+   \begin{enumerate}
+    \item $m$次元格子上に配置された$n^m$個のノードを初期状態とする.
+    \item 各ノードは格子上で自分から格子距離$p$以内にある全てのノードとの短距離エッジ (local contact) を得る.
+    \item 各ノード$u$は$q$本の長距離エッジ (long-range contact)を追加する. ただし$u$が$v$とのエッジを持つ確率を$p(u,v)$として,
+	  \begin{eqnarray}
+	   p(u,v)=\cfrac{1}{d(u,v)^{r}Z} \label{eq:kleinberg_p}
+	  \end{eqnarray}
+   \end{enumerate}
+   ここで, 
+   \begin{itemize}
+    \item  $r$: 他ノードとの接続確率がどの程度格子距離に依存するかを示すパラメータ
+    \item  $d(u,v)$: $u,v$間の格子距離 (例: 2次元格子であれば$d(u,v)=|u_x - v_x| + |u_y - v_y|$)
+    \item $Z = \displaystyle \sum_{v\in V, v\neq u}^{}d(u,v)^{-r}$: 正規化定数
+   \end{itemize}
+   である. このモデルは「距離が近い人どうしほど知りあいである確率が高い」という非常に直観的な発想に基づいている. なお$r=0$の場合はWatts-Strogatzモデルと同等となる. Kleinbergモデルのアルゴリズムにより生成されたグラフを図\ref{fig:kleinberg}に示す. (a)は2次元格子, (b)は1次元格子の場合である.
+   \begin{figure}[htbp]
+    \centering
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../fig/kleinberg_2dim.eps}
+     \caption{$n=10,m=2,p=1,q=1,r=2$}
+    \end{subfigure}
+    \begin{subfigure}[b]{0.48\textwidth}
+        \includegraphics[width=\textwidth]{../fig/kleinberg_1dim.eps}
+        \caption{$n=100,m=1,p=1,q=1,r=1$}
+    \end{subfigure}
+    \caption{Kleinbergのスモールワールドネットワーク}
+    \label{fig:kleinberg}
+   \end{figure}
+
+   このようにして生成されたグラフにおいて, Kleinbergは$r=m$の場合, つまり格子次元にパラメータが一致する場合に, greedyルーティングによる任意のノードからターゲットまでのホップ数期待値が$O(\log^2n)$となることを証明した. ここでgreedyルーティングとは「各ノードはターゲットまでの距離が最も近い隣接ノードにメッセージをフォワードする」というアルゴリズムを意味し, 各ノードは自分, 隣接ノード, ターゲットの座標という限られた情報のみを用いて次ノード選択の意思決定を行うため, greedyルーティングは分散的である.
+
+
    \subsection{Freenetプロトコル: 埋め込みとルーティング} \label{sec:freenetprotocols}
+   この節ではFreenetのF2Fモード(またはDarknetモードとも呼ばれる)の概略について述べる. F2Fモードの目的はP2Pシステムにおけるノードのプライバシー保護であり, ネットワーク上の各ノードは予め信頼のおけるノードとのみ直接の通信を行う. つまり「友人と友人」(friend-to-friend)の通信のみを行うという制約を設けることによって, 信頼関係の外部にいる攻撃者によるプライバシー侵害を困難にしようというのが核心となるコンセプトである.
+
+   この制約があるため, F2Fモードにおいては通信効率を最適化するようにネットワークトポロジー自体に変更を加えることが不可能であり, 各ノードはネットワークの全体像も把握することができない. よって, ネットワーク上で隣接していないノードどうしがデータの送受信を行うためには, Milgramの実験と同様にネットワーク上の中継ノードが局所的な情報をのみを用いてメッセージのフォワーディングを繰り返す必要がある. 
+
+   そこでネットワークトポロジーを変えずにルーティングを効率化するためにF2Fモードが取るアプローチが, ネットワークのID空間への「埋め込み」(embedding)である. 埋め込みとルーティングの概念図を図\ref{fig:f2f_overview}に示す.
+
+   \begin{figure}[htbp]
+    \centerline{\includegraphics[width=150mm]{../fig/greedy_embedding_overview.eps}}
+    \caption{F2Fネットワークにおける埋め込みとルーティングの概略}
+    \label{fig:f2f_overview}
+   \end{figure}
+
+   一般的にネットワーク$G=(V,E)$の距離空間$(X,d)$への埋め込みは単射$\phi:V \to X$で定義される\cite{papadimitriou2005conjecture}. Freenetでは以下の式(\ref{eq:f2f_dist})で定義される距離関数$d$を備えた単位区間$[0,1)$が上記の$X$に対応し, ID空間(ID space)またはキー空間(key space)などと呼ばれる. 以下では空間上の一点を便宜的に''ID''または「座標」と呼ぶこととする. 図\ref{fig:f2f_overview}のようにID空間上の各点は円上の点に, 2点間の距離は円周上の距離に対応付けることができる.
+
+   \begin{eqnarray}
+    \forall x,y \in [0,1), d(x,y) = \min\{|x-y|, 1 - |x-y|]\} \label{eq:f2f_dist}
+   \end{eqnarray}
+
+   よってF2Fモードでは, 効率的な分散ルーティングが可能となるようにID空間への埋め込み$\phi$を生成することが重要となる. 
+
+   \subsubsection{埋め込みの生成: SWAPアルゴリズム}
+   さてF2Fモードの埋め込みの生成はSandbergが2006年に提案した手法(以下SWAPアルゴリズムと呼ぶ)に基づいている\cite{sandberg2006distributed}. SWAPアルゴリズムは埋め込みの生成をパラメータ$\phi$の推定問題としてみなし, ID空間に埋め込まれたグラフがKleinbergモデルによって生起する確率が高くなるように(つまり隣接するノード間のID空間における距離の分布が式(\ref{eq:kleinberg_p})に従うように), $\phi$をMetropolis-Hastings法によりサンプリングする.
+
+   SWAPアルゴリズムの概略は以下の通り.
+   \begin{enumerate}
+    \item ノード$u$はID交換相手の候補$v$をランダムウォークにより選択し, ID交換リクエストを送る(Freenetの実装ではランダムウォークのホップ数は10)
+    \item 各$u,v$がそれぞれ「隣接ノードと自分の距離」「隣接ノードと相手の距離」を計算することで, 以下の採択率$\beta(\phi_1, \phi_2)$を得る. 
+    \begin{eqnarray}
+     \beta(\phi_1, \phi_2)= \min \left[1, \frac{\prod_{w \in N(u)}d(\phi_1(w), \phi_1(u))\prod_{w \in N(v)}d(\phi_1(w), \phi_1(v))}{\prod_{w \in N(u)}d(\phi_2(w), \phi_2(u))\prod_{w \in N(v)}d(\phi_2(w), \phi_2(v))}\right] \label{eq:acceptance}
+    \end{eqnarray}
+	  ただし$N(u), N(v)$は$u,v$の隣接ノード集合, $\phi_1$は現在の埋め込みのサンプル, $\phi_2$は候補サンプルで, $\phi_1$における$u,v$のID割り当てを入れ替えたものである.
+    \item $[0,1)$上の一様乱数を生成し乱数が$\beta(\phi_1, \phi_2)$を超えなければ, $u,v$はIDを交換, すなわち埋め込みの候補サンプル$\phi_2$を採択し, さもなくばID交換を行わない.
+   \end{enumerate}
+
+   なお採択確率$\beta(\phi_1,\phi_2)$の導出は, 付録に記述した.
+
+   以上の操作を十分な回数反復することで, greedyルーティングによって短い平均ホップ数が達成できるようなIDの割り当てを生成することができる. Sandbergは人工的に生成したKleinbergのネットワークデータと実データに対してシミュレーション実験を行い, SWAPアルゴリズムの適用後割り当てられた座標情報がgreedyルーティングの効率性を大いに高めることを示した.
+
+   \subsubsection{ルーティングアルゴリズム: $D^2$-$DFS$}
+   \begin{figure}[htbp]
+    \centerline{\includegraphics[width=100mm]{../fig/d2dfs_example.png}}
+    \caption{$D^2$-$DFS$の動作例}
+    \label{fig:d2dfs_example}
+   \end{figure}
+
    \subsection{EVN: Expected-value navigation} \label{sec:evn}
     \begin{eqnarray}
      E(l(v,t)) &=& \sum_i ip(l(v,t)=i)\nonumber \\
@@ -145,52 +228,25 @@ F2Fオーバーレイネットワークの最も代表的な実装例は, Freene
      &\approx& 1 - Poisson(0; k_vp(v,t)) )\nonumber\\
      &=& 1- e^{k_vp(v,t)} \label{eq:evn-basic}
     \end{eqnarray}
-    よってある隣接ノード$v$が$E(l(v,t))$が最小化することは, $1/k_vp(v,t)$を最小化することと同値であるからヒューリスティック関数$f(v)$を
+    よってある隣接ノード$v$が$E(l(v,t))$を最小化することは, $1/k_vp(v,t)$を最小化することと同値であるからヒューリスティック関数$f(v)$を
     \begin{eqnarray}
      f(v) = \frac{1}{k_vp(v,t)}\label{eq:evn-heuristic}
     \end{eqnarray}
-    と定義すれば, 「メッセージを持つノード$u$は(\ref{eq:evn-heuristic})式で定義される$f(v)$を最小化するような隣接ノード$v \in N(u)$にメッセージをフォワードする」というシンプルなルーティングアルゴリズムにより, 隣接ノード中最もターゲットに近い可能性の高いノードを選択することができる. 
+    と定義すれば, 「メッセージを持つノード$u$は(\ref{eq:evn-heuristic})式で定義される$f(v)$を最小化するような隣接ノード$v \in N(u)$にメッセージをフォワードする」というシンプルなルーティングアルゴリズムにより, 「隣接ノード中ターゲットまでのホップ数が最も少ないと期待されるノード」を選択することができる. 
 
-\if0
-\cite{clarke2001freenet}
-\cite{sandberg2006distributed}
-\cite{sandberg2006evolution}
-\cite{sandberg2008neighbor}
-\cite{mogren2008adaptive}
-\cite{evans2007routing}
-\cite{clarke2010private}
-\cite{schiller2011attack}
-\cite{roos2012provable}
-\cite{roos2013contribution}
-\cite{roos2016dealing}
-\cite{hofer2013greedy}
-\cite{roos2016anonymous}
-\cite{roos2016analyzing}
-\cite{kleinberg2000small}
-\cite{csimcsek2008navigating}
-\cite{serrano2008self}
-\cite{boguna2009navigating}
-\cite{boguna2009navigability}
-\cite{kleinberg2007geographic}
-\cite{cvetkovski2009hyperbolic}
-\cite{krioukov2010hyperbolic}
-\cite{boguna2010sustaining}
-\cite{papadopoulos2015network}
-\cite{blasius2016efficient}
-\cite{kleinberg2006complex}
-\cite{huang2014navigation}
-\cite{van2010graph}
-\fi
+
+
 \section{問題設定}
-\ref{sec:freenetprotocols}節に述べた\acrshort{f2f}ネットワークにおける分散ルーティング効率を向上するための大まかな方針として (1)埋め込みアルゴリズムの改良 (2)分散ルーティングアルゴリズムの改良 の2通りを挙げることができる. 本研究では後者の方針を選択する. つまりSandbergによる\gls{swap}がgreedy embeddingでないという前提の上で, SWAP適用後のネットワークにおけるルーティング効率を改善させるための方法を模索する. \newline
+\ref{sec:freenetprotocols}節に述べた\acrshort{f2f}ネットワークにおける分散ルーティング効率を向上するための大まかな方針として (1)埋め込みアルゴリズムの改良 (2)分散ルーティングアルゴリズムの改良 の2通りを挙げることができる. 本研究では後者の方針を選択する. つまりSandbergによる\gls{swap}がgreedy embeddingでないという前提の上で, SWAP適用後のネットワークにおけるルーティング効率を改善させるための方法を模索する.
+
 その上で今回我々は\acrshort{f2f}ネットワークが持つスケールフリー性に着目し, \ref{sec:evn}節で述べた{\c{S}}im{\c{s}}ek, Jensenのヒューリスティックスを取り入れることでFreenetプロトコルにおける分散ルーティングのパフォーマンスを向上させることを試みる. つまり, 今回我々が検証する仮説は「greedy embeddingでないSWAP適用後の\acrshort{f2f}ネットワークにおいて, 単純なノード間距離に応じたヒューリスティックを用いる代わりに, 隣接ノードの次数とノード間距離を共に考慮したヒューリスティックスを用いることで, ルーティングのパフォーマンスを向上させることが可能である」とまとめることができる. 以下この仮説検証のために, $D^2$-$DFS$とEVNを統合したルーティングアルゴリズム, degree-and-distance-directed depth-first search ($D^3$-$DFS$)の提案とパフォーマンス評価を行っていく. 
-\section{提案手法}
+\section{提案手法: degree-and-distance-directed depth-first search}
 まず$D^3$-$DFS$において用いるヒューリスティックスを定義する. Sandbergの手法に従い, ネットワークがKleinbergモデルに従って生成されたとすると隣接ノード$v \in N(u)$がターゲットノード$t$と隣接する確率は正規化定数$Z$を用いて$p(v,t) = 1/d(v,t)Z$であるから, これを\ref{sec:evn}節で導いた(\ref{eq:evn-heuristic})式に代入するとヒューリスティック関数$f(v)$は次のような形で表される.
 \begin{eqnarray}
 f(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
 \end{eqnarray}
-よって$D^3$-$DFS$において, メッセージを持つノード$u$は(\ref{eqn:d3dfs-heuristic})式を最小にするような$v \in N(u)$にメッセージをフォワードすることが基本的な動作となる. これは通常の距離のみを用いたgreedyルーティングに次数の重み付けを付加したものと見なすことができる. \newline
-次に, $u$の全ての隣接ノードが以前にメッセージを受け取ったことがあるような状況を考える. このような場合\cite{csimcsek2008navigating}では次ノードを隣接ノードの中からランダムに選択するとしているが, ランダムなノード選択では同様に隣接ノードが全て訪問済みであるようなノードに何度も到達する可能性があり無駄なステップが増えることが予想されるため, $D^3$-$DFS$ではその名前が表すように, $u$に初めてメッセージをフォワードしたノード (predecessor) にメッセージを戻すとする.  \newline
+よって$D^3$-$DFS$において, メッセージを持つノード$u$は(\ref{eqn:d3dfs-heuristic})式を最小にするような$v \in N(u)$にメッセージをフォワードすることが基本的な動作となる. これは通常の距離のみを用いたgreedyルーティングに次数の重み付けを付加したものと見なすことができる. 
+次に, $u$の全ての隣接ノードが以前にメッセージを受け取ったことがあるような状況を考える. このような場合\cite{csimcsek2008navigating}では次ノードを隣接ノードの中からランダムに選択するとしているが, ランダムなノード選択では同様に隣接ノードが全て訪問済みであるようなノードに何度も到達する可能性があり無駄なステップが増えることが予想されるため, $D^3$-$DFS$ではその名前が表すように, $u$に初めてメッセージをフォワードしたノード (predecessor) にメッセージを戻すとする.
 
 以上$D^3$-$DFS$の動作に関する概略を述べた. 詳細なアルゴリズムは擬似コードとしてAlgorithm \ref{alg:d3dfs}に示す. ただし擬似コードの記述スタイルについては\cite{roos2013contribution}を参考にした.
    \begin{algorithm}[htbp]
@@ -205,17 +261,17 @@ f(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
      \State \textrm{routing failed; terminate}
      \EndIf
      \If {$u.predecessor$ == null}
-     \State $u.predecessor = p$
+     \State $u.predecessor \gets p$
      \EndIf
-     \State $S = \{v \in N(u) |  v \notin B \}$
+     \State $S \gets \{v \in N(u) |  v \notin B \}$
      \If {$S == \o$} \# all the neighbors have seen the message before
-     \State $B = B \cup \{u\}$
-     \State $next = u.predecessor$
+     \State $B \gets B \cup \{u\}$
+     \State $next \gets u.predecessor$
      \Else
-     \State $next = \argmin_{v \in S} d(u, v)/k_v$
-     \State $B = B \cup \{ next\}$
+     \State $next \gets \argmin_{v \in S} d(u, v)/k_v$
+     \State $B \gets B \cup \{ next\}$
      \EndIf
-     \If {$next == null$} \# this happens only if a current node is the source
+     \If {$next == \textrm{null}$} \# this happens only if a current node is the source
      \State \textrm{routing failed; terminate}
      \Else
      \State $D^3$-$DFS(next, u, t, B, c-1)$
@@ -280,7 +336,7 @@ f(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
      \label{fig:wot_dd}
     \end{figure}
 
-  \acrshort{wot} $G$の解析の結果得られた基本情報を表\ref{table:wot_info}に示す. 表\ref{table:wot_info}と\acrshort{wot}の次数分布をプロットした図\ref{fig:wot_dd}に見られるように, 高いクラスタリング係数, 小さな平均最短経路長, べき則に従う次数分布等, WoTは典型的なスモールワールドネットワークかつスケールフリーネットワークの特徴を持つことが確認できる. 
+  \acrshort{wot} $G$の解析の結果得られた基本情報を表\ref{table:wot_info}に示す. なお平均最短経路長はDijkstra法により, スケーリング指数については最小二乗法により求めた. 表\ref{table:wot_info}と\acrshort{wot}の次数分布をプロットした図\ref{fig:wot_dd}に見られるように, 高いクラスタリング係数, 小さな平均最短経路長, べき則に従う次数分布等, 典型的なスモールワールドネットワークかつスケールフリーネットワークの特徴が確認できる. 
 
  WoTをシミュレーション用実データとして用いている\cite{sandberg2006distributed}や\cite{clarke2010private}では以上に述べたのと同様の前処理の後さらにネットワークの局所的な部分グラフを取り出したり, 低次数ノードを削除するなどの操作を加えた後シミュレーションを行っているが, 本研究では現実のF2Fネットワークトポロジーにおけるルーティングのパフォーマンスをより正確に評価するために, まずはそういった意図的な操作は施さずにシミュレーションを行う. 以下では無向グラフとみなせる部分グラフを抽出する最低限の前処理が施されたのみで, 意図的な操作が加えられていないデータを便宜的に「未処理のネットワーク」と呼ぶこととする.
 
@@ -331,7 +387,7 @@ f(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
 
    概ねの傾向としていずれのルーティングアルゴリズムにおいても$k_{\max}$が減少するに応じて, 成功率が低下していることがわかった. つまりgreedyルーティングにせよ, EVNのヒューリスティックにせよ, 少数のハブの存在がルーティングのパフォーマンス向上に寄与していることになる. また, 次数上限がある中でも成功率や各ホップ数以内に成功したルーティング試行の割合の面でルーティングアルゴリズムの優劣は基本的に変わらず, $k_{\max}=10$の場合を除き, $D^3$-$DFS$, EVNR, $D^2$-$DFS$の順に高いパフォーマンスを発揮した.
 
-   よって$D^3$-$DFS$はハブノードの存在によって恩恵を受けており, ハブの消失により確かに絶対的なパフォーマンスは低下するものの, 既存ルーティングアルゴリズムも同様にパフォーマンスが低下するため, 相対的には優れた性能を持ったアルゴリズムであることが分かる. これはEVNのヒューリスティックがgreedyルーティングのそれを包含しており, 次数のばらつきがない場合にEVNのヒューリスティックは単なる距離に基づいたものに近くなるだけだからである.
+   よって$D^3$-$DFS$はハブノードの存在によって恩恵を受けており, ハブの消失により確かに絶対的なパフォーマンスは低下するものの, 既存ルーティングアルゴリズムも同様にパフォーマンスが低下するため, 相対的には優れた性能を持ったアルゴリズムであることが分かる. これはEVNのヒューリスティックがgreedyルーティングのそれを包含しており, 次数のばらつきがない場合にEVNのヒューリスティックは単なる距離に基づいたものとなるからである.
 
    \begin{figure}[htbp]
     \centerline{\includegraphics[width=100mm]{../fig/clip_succ.eps}}
@@ -408,24 +464,30 @@ f(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
     \label{fig:cml_dclip}
    \end{figure}
 
-\section{結論と今後の方針}
-本研究では主にFreenetで用いられる手法を概観し, Sandbergの埋め込み生成アルゴリズムSWAPの実データへの適用とそのlocal contact の存在率を算出することによりSWAPでは$D^2$-$DFS$によるpolylogルーティングが不可能である蓋然性が高いことを実証的に確認し, 実際未処理の実データを用いたルーティングシミュレーションを通じて先行研究に提示された結果よりも遙かに低いパフォーマンスを記録することを確認できた. 
 
-その上でF2Fネットワークにおける分散ルーティングの効率性を向上させるために$D^3$-$DFS$を提案し, そのパフォーマンス評価を行った. より現実的なF2Fネットワークトポロジーに近いデータとハブノードの欠落という負の要素を伴ったデータ共に, シミュレーション結果において$D^3$-$DFS$が他を凌ぐことが確認できたため, Freenet等実際にデプロイされているF2Fネットワークの実装に活用できる可能性が大いにある. 特に現行のFreenetルーティングプロトコルである$D^2$-$DFS$よりも遙かに高い成功率と短い平均ホップ数を達成できた.
+\section{結論と今後の課題}
+本研究ではF2Fネットワークにおける分散ルーティングの手法として主にFreenetのプロトコルを概観した. そしてSandbergの埋め込み生成アルゴリズムSWAPをWeb of Trustネットワークデータに適用し, ルーティングシミュレーションを行うことにより, $D^2$-$DFS$では$\log^2|V|$のホップ数上限のもとで20\%強という低い成功率と80強という決して短いとは言えない平均ホップ数しか達成できないことを実証的に確認した. よってFreenetの実装においてもOpennetを考慮しないピュアなDarknetモードではルーティングのパフォーマンスは低いことが予想できる.
 
-しかし例えばFreenetのルーティングプロトコルとして現実に組み込むためには, 以下の要素について十分な分析を行う必要性がある.
-\begin{enumerate}[label={*}]
-\item 更に良いヒューリスティックの設定方法はないか ?
-\item 今回はデータの request 実験のみを行ったが , insert に対しても EVN を適用すべきか ?
-\item より Freenet の実装に近い条件でのシミュレーション (Opennet モードとの共存 , churn あり , DoS アタックの存在 , etc)
-\item 次数の情報を隣接ノードと共有することがセキュリティレベルに影響を与えるか ?
-\item 埋め込みアルゴリズム自体の改良( e.g. Hyperbolic space model)
-\end{enumerate}
+その上で分散ルーティングの効率性を向上させるために $D^2$-$DFS$に隣接ノードの次数を考慮したヒューリスティックを加えた$D^3$-$DFS$を提案し, そのパフォーマンス評価を行った. 未処理のF2Fネットワークトポロジーデータ, 一部のハブノードを除いたデータ共に, $D^3$-$DFS$が$D^2$-$DFS$を成功率や平均ホップ数の面で凌ぐことが確認できたため, Freenet等の実際にデプロイされているF2Fネットワークの実装に活用できる可能性が大いにある. 
 
-\clearpage
+しかし$D^3$-$DFS$といえども今回の実験では成功率が40\%弱であり, ノードの次数上限を設けた場合は30\%弱と, それ自体決して高い値とは言えない. また表\ref{table:wot_info}の通り今回用いたWeb of Trustネットワークにおける本来の平均最短経路長が6.60であるの対し, $D^3$-$DFS$の平均ホップ数は依然60以上と最適値には程遠い. P2Pネットワークへの応用を考えた場合, ノード間の通信効率を保証するためにも他ノード到達の成功率を高く保ちホップ数を抑えることは非常に重要であるため, これらのパフォーマンス指標をさらに向上させることが, ピュアなF2Fネットワークを実用的なレベルにまで押し上げるための今後の課題である. 例えば今回次ノード選択のヒューリスティックに\cite{csimcsek2008navigating}で提案されたものを用いたが, 更に高いパフォーマンスを発揮するヒューリスティックを今後模索すべきであろう. また今回埋め込みアルゴリズムは先行研究のSWAPをそのまま用いたが, \cite{roos2017balanced}, \cite{boguna2010sustaining}等greedyルーティングが効率的となる様々な埋め込みのアルゴリズムが他にも提案されている. よって他の埋め込みアルゴリズムを適用した後のネットワークにおいて$D^3$-$DFS$が更に良いパフォーマンスを発揮できるか否か検証するべきだろう.
+
+F2Fネットワークは信頼のおけるノード間に限った通信という厳しい制約上, 効率面において未だ多くの問題を残している. しかし今後はF2Fの直面する安全性と効率性というトレードオフを解消し, F2Fの実用性向上に努めていきたい. 
+
+最後に$D^3$-$DFS$アルゴリズムを仮にFreenetプロトコルに導入するとした場合, 今回のシミュレーション実験に加えて行うべきいくつかの検証項目について述べておく.
+
+\subsubsection*{データのinsert/requestの評価}
+Freenetで実際に行われるルーティングの目的は今回の実験で行ったような「特定のノードの探索」ではなく, 「特定のデータを持ったノードの探索」(request) もしくは「特定のデータを保持すべきノードの探索」(insert) である. よって今後は$D^3$-$DFS$を用いたinsertによってデータがネットワーク全体にどのように分布するか, また$D^3$-$DFS$を用いたrequestによって任意のノードから任意のデータに効率的に到達可能かを検証せねばならない. それによって今回提案したアルゴリズムがFreenetにおけるデータの送受信でどの程度のパフォーマンスを発揮できるかをより正確に知ることができるであろう. 
+
+\subsubsection*{セキュリティ面の評価}
+Freenetはその目的においてセキュリティレベルを高く保つ必要がある. $D^3$-$DFS$は既存のFreenetにおけるDarkentモードにはない「ノードの次数」という新しい情報を隣接ノード間で共有することにより実現が可能であり, 次数情報自体はグラフ全体のトポロジーや隣接ノード以外のアイデンティティを明らかにするものではないため, 仮に何らかの方法で悪意を持ったノードがFreenet上の特定ノードの信頼を得てネットワークに参加したとしても, 直接接続していないノードのプライバシー侵害を行ったりすることは不可能と考えられる. しかし既存のFreenetプロトコルにも言えることではあるが, 悪意のあるノードはリクエストを無視したり, あるいは意図的に次数の低い隣接ノードへリクエストをフォワードしたりといったDoS(denial-of-service)攻撃が可能なため, これがどの程度$D^3$-$DFS$のパフォーマンスに悪影響を及ぼすか等を検証すべきである.
+
+\subsubsection*{Opennetノードの存在を考慮した評価}
+実際のFreenetはピュアな今回の実験で想定したF2Fネットワークではなく, ネットワーク内に接続先を制限しないOpennetノードが多数存在している. よってOpennetノードが一定数存在する環境で$D^3$-$DFS$はどの程度パフォーマンスを向上させることができるか, もしくは$D^3$-$DFS$が効率的となるためにOpennetノードへどういったアルゴリズムでIDや次数を割り当てるべきかを検証する必要があるだろう. 
+
 %% 謝辞 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \acknowledgment
-この場を借りて深く感謝を申し上げます.
+本研究に取り組むにあたって, 宮崎修次講師には研究のテーマの方向性, 手法等さまざまな側面において助言を下さったことに対し深く感謝の意を申し上げます. また研究会等で本研究に対する指摘, 助言をしてくださった同研究室の先生方, 先輩方, 同期の方々に御礼申し上げます.
 %% 参考文献 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \addcontentsline{toc}{section}{\refname} % 目次に参考文献を追加する．
                                          % chapter使用時は削除すること．
@@ -440,6 +502,27 @@ f(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
 %% 付録 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% 付録は不要ならば削除してよい．
 \appendix
+\section{SWAPアルゴリズムにおける採択確率の導出}
+   与えられたグラフ$G=(V,E)$のエッジがKleinbergモデルにおける式(\ref{eq:kleinberg_p})に基づいて生成されたと仮定した場合, 尤度関数$p(E|\phi)$は
+   \begin{eqnarray*}
+    p(E|\phi) = \prod_{(x,y) \in E}\frac{1}{d(\phi(x), \phi(y))^rZ}
+   \end{eqnarray*}
+   一方$p(\phi|E)$をエッジ集合$E$が観測された場合の$\phi$の事後分布とすれば, ベイズの定理によりこれを尤度関数を用いて書き直せて
+   \begin{eqnarray*}
+    p(\phi|E) &=&\cfrac{p(E|\phi)p(\phi)}{p(E)} \label{eq:posteri}
+   \end{eqnarray*}
+   よって$\phi_1$を現在のサンプル, $\phi_2$を候補サンプルとすれば, Metropolis-Hastingsアルゴリズムにおける採択確率$\beta(\phi_1,\phi_2)$は以下のように書き直せる. ただし提案分布$\alpha$はシンメトリックで$\alpha(\phi_1, \phi_2 ) = \alpha(\phi_2, \phi_1 )$を満たすとする. 
+   \begin{eqnarray*}
+    \beta (\phi_1, \phi_2) &=& \min \left[1, \cfrac{p(\phi_2|E)\alpha(\phi_2, \phi_1)}{p(\phi_1|E)\alpha(\phi_1, \phi_2)}\right] \\
+                           &=& \min \left[1, \cfrac{p(\phi_2|E)}{p(\phi_1|E)}\right] \\
+                           &=& \min \left[1, \cfrac{p(E|\phi_2)}{p(E|\phi_1)}\right] \\
+    &=& \min \left[1, \prod_{(x,y) \in E}\cfrac{d(\phi_1(x), \phi_1(y))^r}{d(\phi_2(x), \phi_2(y))^r}\right] \\
+   \end{eqnarray*}
+ここで$\phi_2$を$\phi_1$においてある2つのノード$u,v \in V$のID割り当てを入れ替えたものとすれば, $\phi_1(x)=\phi_2 (y),\ \phi_1(y)=\phi_2 (x),\ \forall z \neq x, y,\ \phi_1(z)=\phi_2(z)$が成り立つから, $u,v$を含まないエッジの距離は無視することができて, 
+\begin{eqnarray*}
+     \beta(\phi_1, \phi_2)&=&\min \left[1, \frac{\prod_{w \in N(u)}d(\phi_1(w), \phi_1(u))^r\prod_{w \in N(v)}d(\phi_1(w), \phi_1(v))^r}{\prod_{w \in N(u)}d(\phi_2(w), \phi_2(u))^r\prod_{w \in N(v)}d(\phi_2(w), \phi_2(v))^r}\right] 
+\end{eqnarray*}
+Sandbergはパラメータ$r$を変えて数パターンのシミュレーション実験を行った結果, Kleinbergの解析的な結果と同じく$r$が空間の次元に一致する場合最もルーティングのパフォーマンスが良いことを示したため, Freenetの実装においても$r=1$と設定されている. 
 
 \section{用語集}
 
