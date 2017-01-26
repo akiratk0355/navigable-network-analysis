@@ -40,6 +40,7 @@
 \usepackage[justification=centering]{caption}
 \usepackage{subcaption}
 \usepackage{graphicx}
+%\usepackage[sorting=none]{biblatex}
 %\usepackage{algorithm2e}
 %\parindent = 0pt
 \makeatletter
@@ -132,7 +133,7 @@ F2Fオーバーレイネットワークの最も代表的な実装例は, Freene
 
 ただしFreenetには未だ様々な問題点が残っている. 第一にSandbergが提案した手法では, Kleinbergモデルが依拠している「格子上で最も近距離にいるノード同士は必ずエッジを持つ」という仮定を決定論的に満たすことができないため, Freenetの実装においてはgreedyルーティングの代わりにdistance-directed depth-first search ($D^2$-$DFS$)が採用されている. しかしこの$D^2$-$DFS$アルゴリズムが特定の条件下において$O(\log^2 n)$のホップ数を達成することができないことはRoos, Strufeらにより解析的に証明された\cite{roos2012provable}\cite{roos2016dealing}\cite{roos2016analyzing}. またFreenetでは, ノードへのID割り当てアルゴリズムの一環としてノード同士がIDを交換するが, この際悪意のあるノードが虚偽のID報告を繰り返すことにより, ノードがID空間上に偏在し, 結果的にルーティングの効率性が低下するというPitch black attack\cite{evans2007routing}などの深刻な脆弱性が指摘されている. よってFreenetのF2Fモードは効率性や頑健性の面で問題点が残り, 現在もそれらを解決するための研究が続けられている.
 
-本研究では, 以上に挙げられたFreenetの問題点のうちルーティングの効率性に着目する. 今回我々は{\c{S}}im{\c{s}}ek, Jensenらによって提案されたルーティングアルゴリズム, expected-value navigation (EVN)\cite{simsek2008navigating}をFreenetプロトコルに適用可能な形に修正することにより, スケールフリー性を持った\acrshort{f2f}ネットワークにおいて既存ルーティングアルゴリズムよりも高いパフォーマンスを発揮する$D^3$-$DFS$を提案する. また, 先行研究のシミュレーション実験においてはルーティングの成功率が向上するように実データの恣意的な改変が施されていたが, 本研究では改変を施さない実データに対するシミュレーション実験を行うことにより, 現実の\acrshort{f2f}トポロジーにより近いネットワークにおけるルーティングアルゴリズムのパフォーマンス評価を行った.
+本研究では, 以上に挙げられたFreenetの問題点のうちルーティングの効率性に着目する. 今回我々は{\c{S}}im{\c{s}}ek, Jensenらによって提案されたルーティングアルゴリズム, expected-value navigation (EVN)\cite{simsek2008navigating}をFreenetプロトコルに適用可能な形に修正することにより, スケールフリー性を持った\acrshort{f2f}ネットワークにおいて既存ルーティングアルゴリズムよりも高いパフォーマンスを発揮するdistance-directed depth-first search ($D^3$-$DFS$)を提案する. また, 先行研究のシミュレーション実験においてはルーティングの成功率が向上するように実データの恣意的な改変が施されていたが, 本研究では改変を施さない実データに対するシミュレーション実験を行うことにより, 現実の\acrshort{f2f}トポロジーにより近いネットワークにおけるルーティングアルゴリズムのパフォーマンス評価を行った.
 
  \section{先行研究}
    \subsection{Kleinbergモデル} \label{sec:kleinberg}
@@ -184,7 +185,7 @@ F2Fオーバーレイネットワークの最も代表的な実装例は, Freene
     \label{fig:f2f_overview}
    \end{figure}
 
-   一般的にネットワーク$G=(V,E)$の距離空間$(X,d)$への埋め込みは単射$\phi:V \to X$で定義される\cite{papadimitriou2005conjecture}. Freenetでは以下の式(\ref{eq:f2f_dist})で定義される距離関数$d$を備えた単位区間$[0,1)$が上記の$X$に対応し, ID空間(ID space)またはキー空間(key space)などと呼ばれる. 以下では空間上の一点を便宜的に''ID''または「座標」と呼ぶこととする. 図\ref{fig:f2f_overview}のようにID空間上の各点は円上の点に, 2点間の距離は円周上の距離に対応付けることができる.
+   一般的にネットワーク$G=(V,E)$の距離空間$(X,d)$への埋め込みは単射$\phi:V \to X$で定義される\cite{papadimitriou2005conjecture}. Freenetでは以下の式(\ref{eq:f2f_dist})で定義される距離関数$d$を備えた単位区間$[0,1)$が上記の$X$に対応し, ID空間(ID space)またはキー空間(key space)などと呼ばれる. 以下では空間上の一点を便宜的に''ID''または「座標」と呼ぶこととする. 図\ref{fig:f2f_overview}のようにID空間上の各点は円上の点に, 2点間の距離は円周上の距離に対応付けることができる\footnote{以下ではノード間のホップ数(number of hops)と距離(distance)とは区別し, 「ノード$u$から$v$へのホップ数」は「ノード$u$から$v$までルーティングを実行した時, 通り過ぎるエッジの数」を指す. 例えば図\ref{fig:f2f_overview}の埋め込み後のグラフにおいてID 0.80とID 0.25の距離は0.45であり, ホップ数は2である.}.
 
    \begin{eqnarray}
     \forall x,y \in [0,1), d(x,y) = \min\{|x-y|, 1 - |x-y|]\} \label{eq:f2f_dist}
@@ -195,8 +196,10 @@ F2Fオーバーレイネットワークの最も代表的な実装例は, Freene
    \subsubsection{埋め込みの生成: SWAPアルゴリズム}
    さてF2Fモードの埋め込みの生成はSandbergが2006年に提案した手法(以下SWAPアルゴリズムと呼ぶ)に基づいている\cite{sandberg2006distributed}. SWAPアルゴリズムは埋め込みの生成をパラメータ$\phi$の推定問題としてみなし, ID空間に埋め込まれたグラフがKleinbergモデルによって生起する確率が高くなるように(つまり隣接するノード間のID空間における距離の分布が式(\ref{eq:kleinberg_p})に従うように), $\phi$をMetropolis-Hastings法によりサンプリングする.
 
-   SWAPアルゴリズムの概略は以下の通り.
+   SWAPアルゴリズムの概略は以下の通りである. 
    \begin{enumerate}
+    \setcounter{enumi}{-1}
+    \item 各ノードは$[0,1)$上の一様乱数を発生させ, IDを得る. これを初期状態とする. 
     \item ノード$u$はID交換相手の候補$v$をネットワーク上でのランダムウォークにより選択し, ID交換リクエストを送る.
     \item 各$u,v$がそれぞれ「隣接ノードと自分の距離」「隣接ノードと相手の距離」を計算することで, 以下の採択率$\beta(\phi_1, \phi_2)$を得る. 
     \begin{eqnarray}
@@ -208,7 +211,7 @@ F2Fオーバーレイネットワークの最も代表的な実装例は, Freene
 
    なお採択確率$\beta(\phi_1,\phi_2)$の導出は, 付録に記述した.
 
-   以上の操作を十分な回数反復することで, greedyルーティングによって短い平均ホップ数が達成できるようなIDの割り当てを生成することができる. Sandbergは人工的に生成したKleinbergのネットワークデータと実データに対してシミュレーション実験を行い, SWAPアルゴリズムの適用後割り当てられた座標情報が, ランダムに割り当てられた座標情報に比してgreedyルーティングの効率性を高めることを示した.
+   以上の1.から3.までの操作を十分な回数反復することで, greedyルーティングによって短い平均ホップ数が達成できるようなIDの割り当てを生成することができる. Sandbergは人工的に生成したKleinbergのネットワークデータと実データに対してシミュレーション実験を行い, SWAPアルゴリズムの適用後割り当てられた座標情報が, ランダムに割り当てられた座標情報に比してgreedyルーティングの効率性を高めることを示した.
 
    \subsubsection{ルーティングアルゴリズム: $D^2$-$DFS$} \label{sec:d2dfs}
    SWAPアルゴリズムの適用は確かにgreedyルーティングの効率性を高めるようなIDの割り当てが可能であるが, 本来のKleinbergモデルと同様の$O(\log^2n)$のホップ数は保証されない. なぜなら, Kleinbergモデルでは全てのlocal contactが存在しているという仮定によってgreedyルーティングの最中にターゲットまでの距離が狭義に単調減少することが保証されているが, SWAPアルゴリズムによってID空間に埋め込まれたネットワークは必ずしもこのlocal contactを持たないからである. よって単純なgreedyルーティングでは''dead end''(自分よりもターゲットに近い隣接ノードが存在しない状態)に達してしまうため, SWAPアルゴリズムによって生成された埋め込みは''greedy embedding''ではない\footnote{任意の$u,t \in V, u\neq t$に対してある$v \in N(u)$が存在して$d(\phi(v), \phi(t)) < d(\phi(u), \phi(t))$を満たす時, 埋め込み$\phi:V \to X$は''greedy embedding''と呼ばれる. 詳細は\cite{papadimitriou2005conjecture}または\cite{kleinberg2007geographic}を参照.}. そこでFreenetではgreedyルーティングの代わりにホップ数上限付のdistance-directed depth-first search ($D^2$-$DFS$)を採用することでdead endに対処している\cite{clarke2001freenet}\cite{clarke2010private}. $D^2$-$DFS$ではgreedyルーティングと同じく「ターゲットに最も近い隣接ノード」にメッセージをフォワードすることを繰り返すが, 以下の点において異なる.
@@ -221,7 +224,7 @@ F2Fオーバーレイネットワークの最も代表的な実装例は, Freene
 
    \begin{figure}[htbp]
     \centerline{\includegraphics[width=100mm]{../fig/d2dfs_example.png}}
-    \caption{$D^2$-$DFS$の動作例: ソースノードID0.52, ターゲットノードID0.15の場合 \\ 赤い矢印はbacktrackingのフェーズを表している}
+    \caption{$D^2$-$DFS$の動作例: ソースノードID 0.52, ターゲットノードID 0.15の場合 \\ 赤い矢印はbacktrackingのフェーズを表している}
     \label{fig:d2dfs_example}
    \end{figure}
 
@@ -256,7 +259,7 @@ F2Fオーバーレイネットワークの最も代表的な実装例は, Freene
 まず$D^3$-$DFS$において用いるヒューリスティックスを定義する. ID空間$[0,1)$上にノードを持つネットワークがパラメータ$r=1$と共にKleinbergモデルに従って生成されたと仮定すると隣接ノード$v \in N(u)$がターゲットノード$t$と隣接する確率は(\ref{eq:kleinberg_p})式より, $p(v,t) = 1/d(v,t)Z$であるから, これを\ref{sec:evn}節で導いた(\ref{eq:evn-heuristic})式に代入するとヒューリスティック関数$f(v)$は次のような形で表される.
 
 \begin{eqnarray}
-f(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
+f(v) = \frac{d(v,t)Z}{k_v} \label{eqn:d3dfs-heuristic}
 \end{eqnarray}
 
 よって$D^3$-$DFS$において, メッセージを持つノード$u$は(\ref{eqn:d3dfs-heuristic})式を最小にするような$v \in N(u)$にメッセージをフォワードすることが基本的な動作となる. これは通常の距離のみを用いたgreedyルーティングに次数の重み付けを付加したものと見なすことができる. 
@@ -512,7 +515,7 @@ Freenetはその目的においてセキュリティレベルを高く保つ必�
 
 %% BibTeX 等を用いる場合は，上の thebibliography 環境を消してここに該当コードを
 %% 挿入すること．
-\bibliographystyle{abbrv}
+\bibliographystyle{ieeetr}
 \bibliography{refs}
 
 
