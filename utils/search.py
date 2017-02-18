@@ -24,7 +24,7 @@ BACKTRACK = 1
 RANDOM = 2 
 
 mode_name_to_num = {
-    #"LOCAL": LOCAL,
+    "LOCAL": LOCAL,
     "FAIL": FAIL,
     "CONT": CONT,
     "EVN": EVN,
@@ -35,7 +35,7 @@ mode_name_to_num = {
 mode_num_to_name = {v: k for k, v in mode_name_to_num.items()}
 
 routingmode_opts = {
-    #LOCAL: {"use_local": True},
+    LOCAL: {"use_local": True},
     FAIL: {},
     CONT: {"strict": False},
     EVN: {"strict": False},
