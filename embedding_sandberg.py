@@ -75,6 +75,7 @@ def main(argv):
     
     # start
     G = id_assign_random(G)
+    #G = id_assign_random(G, interval=0.02) # use this for visualization
     n = G.number_of_nodes()
     mcs = int(args.iters*n)
     logger.info("running %d mcs...", mcs)
