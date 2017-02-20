@@ -57,12 +57,12 @@ friend-to-friend, 分散ルーティング，複雑ネットワーク
 Friend-to-friend (F2F) networks, connectivity-restricted P2P networks which provide censorship-resistant communication systems such as Freenet, suffer from a poor routing performance. In this paper, we improve Freenet's routing algorithm by utilizing neighbors' degree information in message forwarding. Our routing simulations in PGP Web of Trust, a real-world trust relationship network with small-world and scale-free characteristics, show that the proposed method outperforms the existing routing algorithm of Freenet.
 \end{eabstract}
 \begin{ekeyword}
-friend-to-friend, decentralized routing, complex networks
+friend-to-friend, decentralized routing, complex network
 \end{ekeyword}
 \maketitle
 
 \section{はじめに}
-近年インターネットを介したコミュニケーションまたは出版は, 我々の生活において大きな位置を占めるようになってきた. それに伴いユーザーのプライバシー保護を重視したコミュニケーションツールの実装に対する需要が非常に高まっている. その要因として, 例えば近年ではEdward Snowdenによって公に明らかにされたアメリカ国家安全保障局(NSA)による大規模な大衆監視が挙げられる.
+近年インターネットを介したコミュニケーションまたは出版は，我々の生活において大きな位置を占めるようになってきた．それに伴いユーザーのプライバシー保護を重視したコミュニケーションツールの実装に対する需要が非常に高まっている．その要因として，例えば近年ではSnowdenによって公に明らかにされたアメリカ国家安全保障局(NSA)による大規模な大衆監視が挙げられる\cite{snowden}．
 
 特定の企業や団体が中央集権的に管理する情報共有方式は検閲・漏洩のリスクが高いため, 非中央集権的な情報共有を実現するためのアプローチとしてP2P方式が頻繁に採用される．P2P方式にも様々なタイプがあるが，その中でもfriend-to-friend (F2F)\cite{bricklin2000friend}は特にピアの匿名性・プライバシー保護に重点を置いたネットワーキング方式であり，F2Fネットワークにおいて各ノードは, 信頼のおける特定ノードとのみ通信する. F2F方式では, 分散ハッシュテーブル(DHT)等とは異なり, 動的にネットワーク構造を最適化することはできず, ネットワーク構造は常に現実の信頼関係ネットワークの部分グラフに対応する. そしてネットワーク上で隣接していないノード同士がデータの送受信を行うためにはいずれかのノードが「知り合いの知り合い」を辿って他方のノードに到達するための経路を探索する必要性が生じる\cite{rogers2007disappear,roos2016analyzing}.
 
@@ -85,7 +85,7 @@ Kleinbergモデルにおいて，単純なgreedyルーティング (各ノード
    そこでネットワークトポロジーを変えずにルーティングを効率化するためにF2Fモードが取るアプローチが, ネットワークのID空間への「埋め込み」(embedding)である. 埋め込みとルーティングの概念図を図\ref{fig:f2f_overview}に示す.
 
    \begin{figure}[htb]
-    \centerline{\includegraphics[width=90mm]{../fig/greedy_embedding_overview.pdf}}
+    \centerline{\includegraphics[width=95mm]{../fig/greedy_embedding_overview.pdf}}
     \caption{FreenetのF2Fモードにおける埋め込みとルーティングの概略}
     \label{fig:f2f_overview}
    \end{figure}
@@ -131,7 +131,7 @@ $[0,1)$上の一様乱数を生成し乱数が$\beta(\phi_1, \phi_2)$を超え�
    ただし$D^2$-$DFS$はdead-endから脱出してgreedyルーティングを継続するための戦略に過ぎないのでルーティングの効率性向上に寄与するものではない．実際近年Roos, Strufeらはlocal contactの存在を仮定しない修正Kleinbergモデルを提案し, そのようなグラフにおいて$D^2$-$DFS$がポリ対数関数(polylogarithmic)のオーダーでルーティングを終えることができないことを解析的に証明した\cite{roos2016dealing}． 
 
 \section{問題設定}
-\ref{sec:freenetprotocols}節に述べたF2Fネットワークにおける分散ルーティング効率を向上させるための大まかな方針として (i)埋め込みアルゴリズムの改良 (ii)分散ルーティングアルゴリズムの改良 の2通りを挙げることができるが，本研究では後者の方針を取る．そこで今回我々はFreenetプロトコルにおける埋め込みアルゴリズムの不正確さに対処するために，F2Fネットワークの実データが持つスケールフリー性に着目し，次ノード選択時に隣接ノードの次数に応じた重み付けを行うルーティングアルゴリズム提案する．なぜなら次数の高いノードに優先的にメッセージをフォワードすれば，隣接ノードが全て訪問済みなるといった状況を避けやすくバックトラッキングのような無駄なステップを省略できると予想されるからである．このアイデアを検証するため，$D^2$-$DFS$を改良したルーティングアルゴリズム, degree-and-distance-directed depth-first search ($D^3$-$DFS$)の提案と, 実データを用いたパフォーマンス評価を行っていく.
+\ref{sec:freenetprotocols}節に述べたF2Fネットワークにおける分散ルーティング効率を向上させるための大まかな方針として (i)埋め込みアルゴリズムの改良 (ii)分散ルーティングアルゴリズムの改良 の2通りを挙げることができるが，本研究では後者の方針を取る．そこで今回我々はFreenetプロトコルにおける埋め込みアルゴリズムの不正確さに対処するために，F2Fネットワークの実データが持つスケールフリー性に着目し，次ノード選択時に隣接ノードの次数に応じた重み付けを行うルーティングアルゴリズム提案する．なぜなら次数の高いノードに優先的にメッセージをフォワードすれば，隣接ノードが全て訪問済みなるといった状況を避けやすく，バックトラッキングのような無駄なステップを省略できると予想されるからである．このアイデアを検証するため，$D^2$-$DFS$を改良したルーティングアルゴリズム, degree-and-distance-directed depth-first search ($D^3$-$DFS$)の提案と, 実データを用いたパフォーマンス評価を行っていく.
 
 \section{提案アルゴリズム}
 まず$D^3$-$DFS$において用いるヒューリスティックスを定義するために，隣接ノードの次数とノード間の同類性(homophily)を考慮したexpected-value navigation(EVN)\cite{simsek2008navigating}におけるヒューリスティックの枠組みを用いる.
@@ -221,7 +221,7 @@ g(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
    またlocal contactの存在率を$p_{\rm{local}}=$(ID空間上で最も近距離にいるノード同士を接続するエッジの本数)$/|V|$と定義し，初期状態とSWAPアルゴリズム適用後のグラフについてそれぞれ$p_{\rm{local}}$を算出した．その結果ランダムにIDを割り当てた初期状態において$p_{\rm{local}}=0.0002$だったのに対し，図\ref{fig:wot_emb}では$p_{\rm{local}} = 0.23$と大幅に改善してはいるものの，1.0からは程遠いため, 埋め込み後のネットワークにおける単純なgreedyルーティングの効率性が担保されないことが, この時点ですでに予測される.
 
    \begin{figure}[htb]
-    \includegraphics[width=80mm]{../fig/wot_emb_sandberg_thesis.png}
+    \includegraphics[width=80mm]{../fig/wot_emb_sandberg_ccs.png}
     \caption{SWAPアルゴリズムによりID空間$[0,1)$に埋め込まれたWeb of Trustネットワーク}
     \label{fig:wot_emb}
    \end{figure}
@@ -240,7 +240,7 @@ g(v) = \frac{d(v,t)}{k_v} \label{eqn:d3dfs-heuristic}
    \label{table:succ_hops_full}
   \end{table}
   \begin{figure}[htb]
-   \centerline{\includegraphics[width=80mm]{../fig/simple_cml_noclip.png}}
+   \centerline{\includegraphics[width=90mm]{../fig/simple_cml_noclip_gray.pdf}}
    \caption{ID割り当て後のWeb of Trustネットワークにおける各ホップ数以下で成功したルーティング試行の割合}
     \label{fig:simple_cml_noclip}
   \end{figure}
