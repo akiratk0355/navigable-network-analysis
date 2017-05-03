@@ -3,7 +3,7 @@ Created on Oct 27, 2016
 
 @author: akira
 '''
-import random, logging
+import random, logging, sys
 
 import networkx as nx
 import numpy as np
@@ -47,9 +47,9 @@ def labels_from_attr(G, attr):
     return dict((n,d.get(attr, '')) for n,d in G.nodes(data=True))
 
 def switch_nodes(G, x, y):
-    nx.relabel_nodes(G, {x:2}, copy=False)
+    nx.relabel_nodes(G, {x:-1}, copy=False)
     nx.relabel_nodes(G, {y:x}, copy=False)
-    nx.relabel_nodes(G, {2:y}, copy=False)
+    nx.relabel_nodes(G, {-1:y}, copy=False)
     """
     temp = -1.0
     G.add_node(temp) # temp
@@ -119,6 +119,15 @@ def frac_local_contact(G):
             num += 1
     return num/size
 
+# TODO: implement
+def compute_embedding_accuracy(G):
+    ndlist = sorted(G.nodes())
+    C = 1
+    for i, nd in enumerate(ndlist):
+        pre, suc = id_localcon_ring(ndlist, nd)
+    
+    return C
+
 def id_dist_ring(id1, id2):
     return min(abs(id1 - id2), 1.0 - abs(id1 - id2))
 
@@ -131,10 +140,25 @@ def id_localcon_ring(ndlist, node):
     else:
         return (ndlist[idx-1], ndlist[idx+1])
 
-def id_assign_random(G):
+def id_assign_random(G, interval=None):
     mapper = {}
-    for nd in G.nodes():
-        mapper[nd] = np.random.ranf()
+    def chooserands(randl):
+        c = np.random.uniform()
+        for r in randl:
+            if abs(c - r) < interval:
+                c = chooserands(randl)
+    
+        return c
+    
+    if interval:
+        randl = []
+        for nd in G.nodes():
+            id = chooserands(randl)
+            randl.append(id)
+            mapper[nd] = id 
+    else:
+        for nd in G.nodes():
+            mapper[nd] = np.random.uniform()
     G = nx.relabel_nodes(G, mapper)
     return G
 
@@ -146,6 +170,19 @@ def id_assign_ordered(G):
         mapper[nd] = nd / size
     G = nx.relabel_nodes(G, mapper)
     return G
+
+def remove_hubs(G, maxdeg=100):
+    id_to_deg = nx.degree(G)
+    id_and_deg = sorted(id_to_deg.items(), key=lambda x: x[1])
+    id, deg = id_and_deg[-1]
+    if deg > maxdeg:
+        G.remove_node(id)
+        return remove_hubs(G, maxdeg)
+    else:
+        return max(nx.connected_component_subgraphs(G), key=len)
+
+def truncate_labels(G, prec=2):      
+    return dict((n,'{0:.2f}'.format(n)) for n in G.nodes())
 
 def ordered_circular_layout(G, scale=1.,center=None):
     if len(G) == 0:
@@ -165,7 +202,8 @@ def draw_autocrop(plt, pos):
     ymax= cut*max(yy for xx,yy in pos.values())
     plt.xlim(-xmax,xmax)
     plt.ylim(-ymax,ymax)
-
+ 
+# TODO: order by node id
 def write_custom(G, path, encoding='utf-8', prettyprint=True):
     G = nx.OrderedGraph(G)
     nx.write_graphml(G, path, encoding, prettyprint)
